@@ -49,11 +49,11 @@ Schema: `ProfileSettings` (userId PK, 1:1 HabitProfile); fields: isSearchable, a
 
 ## Phase 4: Community (follows, groups, posts)
 
-| #   | Feature     | Status  | Description                                                                                                                         |
-| --- | ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 4.1 | **Follows** | ✅      | POST `/profile/me/following/:userId` follow, DELETE unfollow; GET `/profile/me/followers`, GET `/profile/me/following` (paginated). |
-| 4.2 | **Groups**  | TODO    | Create group, list (public + mine), get by id, join/leave, list members.                                                            |
-| 4.3 | **Posts**   | partial | Create, list, like, comments exist; add GET by id, DELETE, feed by followed.                                                        |
+| #   | Feature     | Status | Description                                                                                                                         |
+| --- | ----------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1 | **Follows** | ✅     | POST `/profile/me/following/:userId` follow, DELETE unfollow; GET `/profile/me/followers`, GET `/profile/me/following` (paginated). |
+| 4.2 | **Groups**  | ✅     | POST `/groups` create, GET `/groups` list (public + mine), GET `/groups/:id`, POST `/groups/:id/join`, DELETE `/groups/:id/members/me`, GET `/groups/:id/members`. Repository, remote/local data sources, Redis cache. |
+| 4.3 | **Posts**   | ✅     | Create, list, like, comments; GET `/posts/:id`, DELETE `/posts/:id`, GET `/posts/feed` (by followed).                                |
 
 Schema: Follow, Group, GroupMember, Post, Comment, Like.
 

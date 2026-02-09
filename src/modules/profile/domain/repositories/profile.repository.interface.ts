@@ -42,6 +42,10 @@ export interface IProfileRepository {
   getTopUserIdsByFollowerCount(limit: number): Promise<string[]>;
 
   getBatchUserIds(limit: number): Promise<string[]>;
+
+  getSettingsBatch(userIds: string[]): Promise<Map<string, ProfileSettingsEntity>>;
+  getActivityScores(userIds: string[], lastDays?: number): Promise<Map<string, number>>;
+  getChallengeParticipationCount(userIds: string[]): Promise<Map<string, number>>;
 }
 
 export const IProfileRepository = Symbol('IProfileRepository');

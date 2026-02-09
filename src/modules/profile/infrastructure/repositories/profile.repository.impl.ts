@@ -161,4 +161,16 @@ export class ProfileRepositoryImpl implements IProfileRepository {
   async getBatchUserIds(limit: number): Promise<string[]> {
     return this.remoteDataSource.getBatchUserIds(limit);
   }
+
+  async getSettingsBatch(userIds: string[]): Promise<Map<string, ProfileSettingsEntity>> {
+    return this.remoteDataSource.getSettingsBatch(userIds);
+  }
+
+  async getActivityScores(userIds: string[], lastDays?: number): Promise<Map<string, number>> {
+    return this.remoteDataSource.getActivityScores(userIds, lastDays);
+  }
+
+  async getChallengeParticipationCount(userIds: string[]): Promise<Map<string, number>> {
+    return this.remoteDataSource.getChallengeParticipationCount(userIds);
+  }
 }

@@ -353,4 +353,79 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     });
     return rows.map((r) => r.userId);
   }
+
+  private static defaultSettingsFor(userId: string): ProfileSettingsEntity {
+    return new ProfileSettingsEntity({
+      userId,
+      isSearchable: true,
+      analyticsEnabled: true,
+      profileVisibility: PostVisibility.PUBLIC,
+      challengeVisibility: PostVisibility.PUBLIC,
+      challengePostVisibility: PostVisibility.PUBLIC,
+      taskDailyReminderTime: null,
+      taskWeekStartDay: 1,
+      taskArchiveVisible: false,
+      pomodoroFocusDuration: 25,
+      pomodoroBreakDuration: 5,
+      pomodoroLongBreakDuration: 15,
+    });
+  }
+
+  async getSettingsBatch(userIds: string[]): Promise<Map<string, ProfileSettingsEntity>> {
+    if (userIds.length === 0) return new Map();
+    const unique = [...new Set(userIds)];
+    const rows = await this.prisma.profileSettings.findMany({
+      where: { userId: { in: unique } },
+    });
+    const map = new Map<string, ProfileSettingsEntity>();
+    for (const row of rows) {
+      map.set(row.userId, this.settingsToEntity(row));
+    }
+    for (const id of unique) {
+      if (!map.has(id)) {
+        map.set(id, ProfileRemoteDataSourceImpl.defaultSettingsFor(id));
+      }
+    }
+    return map;
+  }
+
+  async getActivityScores(userIds: string[], lastDays = 30): Promise<Map<string, number>> {
+    if (userIds.length === 0) return new Map();
+    const since = new Date();
+    since.setDate(since.getDate() - lastDays);
+    since.setHours(0, 0, 0, 0);
+    const rows = await this.prisma.dailyStats.findMany({
+      where: {
+        userId: { in: [...new Set(userIds)] },
+        recordDate: { gte: since },
+      },
+      select: { userId: true, totalCompleted: true },
+    });
+    const map = new Map<string, number>();
+    for (const id of userIds) {
+      map.set(id, 0);
+    }
+    for (const row of rows) {
+      map.set(row.userId, (map.get(row.userId) ?? 0) + row.totalCompleted);
+    }
+    return map;
+  }
+
+  async getChallengeParticipationCount(userIds: string[]): Promise<Map<string, number>> {
+    if (userIds.length === 0) return new Map();
+    const unique = [...new Set(userIds)];
+    const rows = await this.prisma.challengeMember.groupBy({
+      by: ['userId'],
+      where: { userId: { in: unique } },
+      _count: { challengeId: true },
+    });
+    const map = new Map<string, number>();
+    for (const id of unique) {
+      map.set(id, 0);
+    }
+    for (const row of rows) {
+      map.set(row.userId, row._count.challengeId);
+    }
+    return map;
+  }
 }

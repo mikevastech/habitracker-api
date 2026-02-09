@@ -43,6 +43,15 @@ export interface IProfileRemoteDataSource {
 
   /** Batch of user IDs for background processing (e.g. graph-proximity). */
   getBatchUserIds(limit: number): Promise<string[]>;
+
+  /** Batch load settings by userIds. Missing users get default PUBLIC visibility. */
+  getSettingsBatch(userIds: string[]): Promise<Map<string, ProfileSettingsEntity>>;
+
+  /** Sum of totalCompleted (DailyStats) in last N days per user. For habit similarity. */
+  getActivityScores(userIds: string[], lastDays?: number): Promise<Map<string, number>>;
+
+  /** Count of ChallengeMember per user. For challenge-participation boost. */
+  getChallengeParticipationCount(userIds: string[]): Promise<Map<string, number>>;
 }
 
 export const IProfileRemoteDataSource = Symbol('IProfileRemoteDataSource');

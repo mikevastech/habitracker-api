@@ -77,10 +77,26 @@ export class GroupEntity {
   coverImageUrl!: string | null;
   profileImageUrl!: string | null;
   isPublic!: boolean;
+  allowMemberInvites!: boolean;
   memberCount?: number;
   createdAt!: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<GroupEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export type GroupMemberRole = 'ADMIN' | 'MEMBER';
+
+export class GroupMemberEntity {
+  id!: string;
+  groupId!: string;
+  userId!: string;
+  role!: GroupMemberRole;
+  joinedAt!: Date;
+
+  constructor(partial: Partial<GroupMemberEntity>) {
     Object.assign(this, partial);
   }
 }
