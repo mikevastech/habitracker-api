@@ -1,9 +1,12 @@
 # Development Docker Compose
+# Usage:
+#   Postgres + Redis only:  docker compose up -d
+#   Full stack (API in dev): docker compose --profile dev up
 services:
   postgres:
     image: postgres:16-alpine
     container_name: habit-tracker-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -12,13 +15,46 @@ services:
       - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d habit_tracker_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
     container_name: habit-tracker-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: habit-tracker-api
+    profiles:
+      - dev
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      NODE_ENV: development
+      # Override for Docker network (postgres/redis service names)
+      DATABASE_URL: postgresql://user:password@postgres:5432/habit_tracker_db
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
 
 volumes:
   postgres_data:

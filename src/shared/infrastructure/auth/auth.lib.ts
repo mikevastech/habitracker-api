@@ -5,20 +5,27 @@
 import { betterAuth, BetterAuthOptions } from 'better-auth';
 import { magicLink, twoFactor } from 'better-auth/plugins';
 import { passkey } from '@better-auth/passkey';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
-import sgMail from '@sendgrid/mail';
+import * as sendgridMail from '@sendgrid/mail';
 
-const prisma = new PrismaClient();
+const sgMail =
+  (sendgridMail as unknown as { default?: typeof sendgridMail }).default ?? sendgridMail;
 
-// Configure SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+const connectionString = process.env.DATABASE_URL ?? '';
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
+
+// Configure SendGrid (no-op if module failed to load or no key)
+if (sgMail?.setApiKey) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+}
 
 // EU Data Residency configuration
 const sgResidency = process.env.SENDGRID_DATA_RESIDENCY;
-if (sgResidency === 'eu') {
-  const sg = sgMail as { setDataResidency?: (region: string) => void };
-  sg.setDataResidency?.('eu');
+if (sgResidency === 'eu' && sgMail && 'setDataResidency' in sgMail) {
+  (sgMail as { setDataResidency: (region: string) => void }).setDataResidency('eu');
 }
 
 const isDev = process.env.NODE_ENV !== 'production';

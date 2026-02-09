@@ -11,6 +11,7 @@ import Redis from 'ioredis';
         return new Redis({
           host: configService.get<string>('REDIS_HOST', 'localhost'),
           port: configService.get<number>('REDIS_PORT', 6379),
+          maxRetriesPerRequest: null, // required by BullMQ for Workers (blocking commands)
         });
       },
       inject: [ConfigService],

@@ -53,6 +53,38 @@ Redis is used for:
 
 Ensure Redis is running and reachable at `REDIS_HOST` / `REDIS_PORT`. No schema setup required.
 
+## Docker Compose (dev)
+
+Postgres i Redis u kontejnerima:
+
+```bash
+cd habit-tracker-api
+docker compose up -d
+```
+
+`.env` za lokalni API (Postgres na portu **5436**, Redis na **6379**):
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5436/habit_tracker_db
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+Zatim lokalno: `npm install`, `npx prisma migrate dev`, `npm run start:dev`.
+
+**Ceo stack u Dockeru (API u dev režimu, hot reload):**
+
+```bash
+docker compose --profile dev up --build
+```
+
+- Servis `api` koristi `Dockerfile.dev`, mount-uje `./src` i `./prisma` (izmene koda se odmah vide).
+- Prvi put pokreni migracije u kontejneru:  
+  `docker compose --profile dev run --rm api npx prisma migrate deploy`  
+  (ili kreiraj migracije lokalno pa ponovo `docker compose --profile dev up`).
+
+API: `http://localhost:3000`, Swagger: `http://localhost:3000/api/docs`.
+
 ## Run
 
 ```bash
