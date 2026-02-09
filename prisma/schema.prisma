@@ -125,7 +125,8 @@ model User {
   // Application specific profiles
   habitProfile     HabitProfile?
 
-  // Security plugins
+  // Security plugins (twoFactorEnabled required by better-auth twoFactor plugin)
+  twoFactorEnabled Boolean       @default(false)
   twoFactor        TwoFactor?
   passkeys         Passkey[]
 

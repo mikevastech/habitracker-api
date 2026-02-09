@@ -8,6 +8,9 @@ export class AuthController {
 
   @All('*')
   async handleAuth(@Req() req: Request, @Res() res: Response): Promise<void> {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[AuthController]', req.method, req.originalUrl ?? req.url);
+    }
     await this.handleAuthUseCase.execute(req, res);
   }
 }

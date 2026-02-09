@@ -3,7 +3,7 @@
  * Rate limiting enabled in production. Apple sign-in can be added to socialProviders.
  */
 import { betterAuth, BetterAuthOptions } from 'better-auth';
-import { magicLink, twoFactor } from 'better-auth/plugins';
+import { bearer, magicLink, twoFactor } from 'better-auth/plugins';
 import { passkey } from '@better-auth/passkey';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
@@ -30,12 +30,30 @@ if (sgResidency === 'eu' && sgMail && 'setDataResidency' in sgMail) {
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Better Auth baseURL must be exactly the URL where this API is reached (same as Nest listen URL).
+// Used for OAuth callbacks (e.g. Google redirect URI = {baseURL}/auth/callback/google), CORS, links.
+const apiPort = process.env.PORT ?? '3000';
+const defaultBaseUrl = `http://localhost:${apiPort}`;
+const baseURL = process.env.BETTER_AUTH_URL || process.env.API_URL || defaultBaseUrl;
+
+if (isDev) {
+  console.log('[Better Auth] baseURL:', baseURL);
+}
+
 const authOptions = {
-  baseURL: process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:3000',
+  baseURL,
+  // basePath must match Nest route prefix (AuthController is @Controller('auth')) so Better Auth routes match /auth/*
+  basePath: '/auth',
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
+  // Prisma User.id is @db.Uuid; Better Auth default is nanoid. Use UUID so inserts succeed.
+  advanced: {
+    database: {
+      generateId: 'uuid' as const,
+    },
+  },
   user: {
     additionalFields: {
       originAppId: {
@@ -51,14 +69,21 @@ const authOptions = {
   emailVerification: {
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      await sgMail.send({
-        to: user.email,
-        from: process.env.SENDGRID_FROM_EMAIL || '',
-        subject: 'Verify your email address',
-        text: `Verify your email by clicking: ${url}`,
-        html: `<p>Verify your email by clicking: <a href="${url}">Verify Email</a></p>`,
-      });
+      // Don't block sign-up: send in background so handler can return immediately.
+      const from = process.env.SENDGRID_FROM_EMAIL || '';
+      console.log('from', from);
+      if (!from || !sgMail?.send) return;
+      await sgMail
+        .send({
+          to: user.email,
+          from,
+          subject: 'Verify your email address',
+          text: `Verify your email by clicking: ${url}`,
+          html: `<p>Verify your email by clicking: <a href="${url}">Verify Email</a></p>`,
+        })
+        .catch((err) => console.error('[Better Auth] sendVerificationEmail failed:', err));
     },
+    // nesto
   },
   socialProviders: {
     google: {
@@ -67,6 +92,7 @@ const authOptions = {
     },
   },
   plugins: [
+    bearer(),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         await sgMail.send({

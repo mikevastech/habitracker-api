@@ -2,6 +2,7 @@ import { Module, type CanActivate, type Type } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AnalyticsModule } from './shared/infrastructure/analytics/analytics.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { RedisModule } from './shared/infrastructure/redis/redis.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -36,6 +37,7 @@ import { UploadModule } from './modules/upload/upload.module';
     ]),
     PrismaModule,
     RedisModule,
+    AnalyticsModule,
     AuthModule,
     TaskModule,
     ProfileModule,
