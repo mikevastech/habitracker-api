@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -12,6 +13,7 @@ import { AddCommentUseCase } from '../application/add-comment.use-case';
 import { ListCommentsUseCase } from '../application/list-comments.use-case';
 import { PostVisibility } from '../domain/entities/community.entity';
 
+@ApiTags('posts')
 @Controller('posts')
 export class PostController {
   constructor(

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { IsEnum, MinLength, MaxLength } from 'class-validator';
 import { ITaskRepository } from '../domain/repositories/task.repository.interface';
 import {
   TaskEntity,
@@ -11,7 +12,10 @@ import {
 
 export class CreateTaskDto {
   userId!: string;
+  @MinLength(1)
+  @MaxLength(200)
   title!: string;
+  @IsEnum(TaskType)
   taskType!: TaskType;
   isPublic?: boolean;
 }

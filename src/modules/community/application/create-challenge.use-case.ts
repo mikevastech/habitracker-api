@@ -1,17 +1,40 @@
 import { Inject, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 import { IChallengeRepository } from '../domain/repositories/challenge.repository.interface';
 import { IGroupRepository } from '../domain/repositories/group.repository.interface';
 import { ChallengeEntity } from '../domain/entities/community.entity';
 
-export interface CreateChallengeDto {
-  userId: string;
-  groupId: string;
-  title: string;
+export class CreateChallengeDto {
+  userId!: string;
+  groupId!: string;
+  @MinLength(1)
+  @MaxLength(200)
+  title!: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   description?: string | null;
+  @IsOptional()
+  @IsUrl()
   imageUrl?: string | null;
   taskTemplate?: unknown;
-  startDate: Date;
-  endDate?: Date | null;
+  @IsDateString()
+  startDate!: string;
+  @IsOptional()
+  @IsDateString()
+  endDate?: string | null;
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
   onTrackStreakThreshold?: number;
 }
 
@@ -36,8 +59,8 @@ export class CreateChallengeUseCase {
       description: dto.description ?? null,
       imageUrl: dto.imageUrl ?? null,
       taskTemplate: dto.taskTemplate ?? undefined,
-      startDate: dto.startDate,
-      endDate: dto.endDate ?? null,
+      startDate: new Date(dto.startDate),
+      endDate: dto.endDate ? new Date(dto.endDate) : null,
       onTrackStreakThreshold: dto.onTrackStreakThreshold ?? 3,
     });
   }

@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import {
   Controller,
   Post,
@@ -13,6 +14,7 @@ import { UploadImageUseCase } from '../application/upload-image.use-case';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+@ApiTags('upload')
 @Controller('upload')
 @UseGuards(SessionGuard)
 export class UploadController {

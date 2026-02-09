@@ -84,13 +84,14 @@ Schema: Challenge, ChallengeMember, Task.challengeId, RewardEvent.
 
 ## Phase 7: Polish & production
 
-- Swagger
-- Mixpanel or some other tracking
-- crashalytics
-- analytics
-- Validation – DTOs with class-validator.
-- Flutter client – API base URL, Better Auth client.
-- Deploy – env, migrations, Redis.
+| Item | Status | Notes |
+|------|--------|--------|
+| **Swagger (OpenAPI)** | ✅ | `main.ts`: DocumentBuilder, SwaggerModule at `/api/docs`; all controllers have `@ApiTags`. |
+| **Validation** | ✅ | Global `ValidationPipe` (whitelist, transform). DTOs with class-validator: UpdateProfileDto, CreateTaskDto, UpdateTaskDto (optional), CreatePostDto, CreateGroupDto, CreateChallengeDto, LogCompletionDto (optional). |
+| **Deploy docs** | ✅ | `docs/DEPLOY.md` – env vars, Prisma (generate, migrate, deploy, seed), Redis, run instructions. |
+| **Mixpanel / analytics** | Optional | Env: `MIXPANEL_PROJECT_TOKEN`, `MIXPANEL_API_SECRET`; implement when needed. |
+| **Crash/analytics** | Optional | Integrate when needed. |
+| **Flutter client** | Separate | API base URL, Better Auth client – configure in Flutter app. |
 
 ---
 

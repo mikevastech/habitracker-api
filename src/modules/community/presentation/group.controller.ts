@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -9,6 +10,7 @@ import { JoinGroupUseCase } from '../application/join-group.use-case';
 import { LeaveGroupUseCase } from '../application/leave-group.use-case';
 import { ListGroupMembersUseCase } from '../application/list-group-members.use-case';
 
+@ApiTags('groups')
 @Controller('groups')
 export class GroupController {
   constructor(

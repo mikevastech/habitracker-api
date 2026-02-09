@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -14,6 +15,7 @@ import { ListChallengeMembersUseCase } from '../application/list-challenge-membe
 import { GetChallengeProgressUseCase } from '../application/get-challenge-progress.use-case';
 import { CompleteChallengeUseCase } from '../application/complete-challenge.use-case';
 
+@ApiTags('challenges')
 @Controller('challenges')
 export class ChallengeController {
   constructor(

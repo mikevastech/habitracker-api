@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import { GetProfileUseCase } from '../application/get-profile.use-case';
@@ -26,6 +27,7 @@ import { CheckUsernameUseCase } from '../application/check-username.use-case';
 import { GetSuggestedUsersUseCase } from '../application/get-suggested-users.use-case';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
 
+@ApiTags('profile')
 @Controller('profile')
 export class ProfileController {
   constructor(

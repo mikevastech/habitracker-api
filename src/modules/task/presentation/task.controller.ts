@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -21,6 +22,7 @@ import { LogCompletionUseCase, LogCompletionDto } from '../application/log-compl
 import { ListCompletionsUseCase } from '../application/list-completions.use-case';
 import { TaskType } from '../domain/entities/task.entity';
 
+@ApiTags('tasks')
 @Controller('tasks')
 @UseGuards(SessionGuard)
 export class TaskController {

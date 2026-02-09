@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -6,6 +7,7 @@ import { ListRewardEventsUseCase } from '../application/list-reward-events.use-c
 import { ListAchievementDefinitionsUseCase } from '../application/list-achievement-definitions.use-case';
 import { GetUserAchievementProgressUseCase } from '../application/get-user-achievement-progress.use-case';
 
+@ApiTags('gamification')
 @Controller('gamification')
 export class GamificationController {
   constructor(

@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -6,6 +7,7 @@ import { ListNotificationsUseCase } from '../application/list-notifications.use-
 import { MarkNotificationReadUseCase } from '../application/mark-notification-read.use-case';
 import { MarkAllNotificationsReadUseCase } from '../application/mark-all-notifications-read.use-case';
 
+@ApiTags('notifications')
 @Controller('notifications')
 @UseGuards(SessionGuard)
 export class NotificationController {

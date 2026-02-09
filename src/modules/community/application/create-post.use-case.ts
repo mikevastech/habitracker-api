@@ -1,17 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
+import {
+  IsArray,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 import { IPostRepository } from '../domain/repositories/post.repository.interface';
 import { IFollowLocalDataSource } from '../../profile/infrastructure/data-sources/follow.local.datasource.interface';
 import { PostEntity, PostType, PostVisibility } from '../domain/entities/community.entity';
 
-export interface CreatePostDto {
-  userId: string;
+export class CreatePostDto {
+  userId!: string;
+  @IsOptional()
+  @IsString()
   groupId?: string;
+  @IsOptional()
+  @IsString()
   challengeId?: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
   content?: string;
-  type: PostType;
+  @IsEnum(PostType)
+  type!: PostType;
+  @IsOptional()
+  @IsUrl()
   mediaUrl?: string;
-  visibility: PostVisibility;
+  @IsEnum(PostVisibility)
+  visibility!: PostVisibility;
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   taggedUserIds?: string[];
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   hashtags?: string[];
 }
 
