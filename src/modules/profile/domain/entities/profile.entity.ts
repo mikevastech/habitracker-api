@@ -1,0 +1,43 @@
+export enum SubscriptionTier {
+  FREE = 'FREE',
+  PRO = 'PRO',
+  LIFETIME = 'LIFETIME',
+}
+
+export class HabitProfileEntity {
+  userId!: string;
+  username!: string;
+  subscriptionTier!: SubscriptionTier;
+  bio!: string | null;
+  points!: number;
+  isTaggingAllowed!: boolean;
+
+  // Counters or simplified relations for the domain
+  followerCount?: number;
+  followingCount?: number;
+
+  constructor(partial: Partial<HabitProfileEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class FollowEntity {
+  followerId!: string;
+  followingId!: string;
+  createdAt!: Date;
+
+  constructor(partial: Partial<FollowEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class UserBlockEntity {
+  id!: string;
+  profileId!: string;
+  blockedId!: string;
+  createdAt!: Date;
+
+  constructor(partial: Partial<UserBlockEntity>) {
+    Object.assign(this, partial);
+  }
+}

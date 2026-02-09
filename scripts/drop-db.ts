@@ -3,7 +3,9 @@
  * Connects to "postgres" to run DROP/CREATE, then you can run prisma migrate deploy.
  * Usage: npx ts-node scripts/drop-db.ts (or npm run db:drop)
  */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import 'dotenv/config';
+import { Client } from 'pg';
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -27,7 +29,6 @@ if (!/^[a-zA-Z0-9_]+$/.test(dbName)) {
 const adminUrl = url.replace(/\/[^/]*(\?.*)?$/, '/postgres$1');
 
 async function main() {
-  const { Client } = await import('pg');
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {

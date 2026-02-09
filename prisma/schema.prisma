@@ -125,9 +125,10 @@ model User {
   // Application specific profiles
   habitProfile     HabitProfile?
 
-  // External relations will now link predominantly to the AppProfile
-  // but for simpler queries we can keep some here if we want global access
-  
+  // Security plugins
+  twoFactor        TwoFactor?
+  passkeys         Passkey[]
+
   @@unique([email, originAppId]) // Key for per-app isolation
   @@index([email])
   @@map("user")
@@ -180,6 +181,37 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+  @@schema("auth")
+}
+
+model TwoFactor {
+  id          String   @id @default(uuid()) @db.Uuid
+  secret      String
+  backupCodes String
+  userId      String   @unique @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("two_factor")
+  @@schema("auth")
+}
+
+model Passkey {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String?
+  publicKey    String
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("passkey")
   @@schema("auth")
 }
 
