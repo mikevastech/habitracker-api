@@ -34,7 +34,7 @@ export class PrismaTaskRepository implements ITaskRepository {
 
   async create(task: Partial<TaskEntity>): Promise<TaskEntity> {
     const data: Prisma.TaskCreateInput = {
-      user: { connect: { id: task.userId! } },
+      profile: { connect: { userId: task.userId! } },
       title: task.title!,
       type: task.taskType as PrismaTaskType, // Direktno mapiranje enuma
       isPublic: task.isPublic ?? false,

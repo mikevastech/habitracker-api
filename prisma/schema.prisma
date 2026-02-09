@@ -1,7 +1,8 @@
 // This is your Prisma schema file documentation: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -42,56 +43,106 @@ enum SubscriptionTier {
   PRO
   LIFETIME
 
-  @@schema("auth")
+  @@schema("habitracker_app")
 }
 
-// --- AUTH SCHEMA MODELS (Shared) ---
+enum PostType {
+  TEXT
+  ACHIEVEMENT
+  CHALLENGE_CREATED
+  CHALLENGE_ON_TRACK
+  CHALLENGE_COMPLETED
+  IMAGE
+
+  @@schema("habitracker_app")
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+
+  @@schema("habitracker_app")
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+
+  @@schema("habitracker_app")
+}
+
+// --- REFERENCE TABLES (seeded; new type = new row, no migration) ---
+
+model NotificationTypeRef {
+  id          String        @id @default(uuid()) @db.Uuid
+  code        String        @unique  // e.g. FOLLOW, LIKE_POST
+  name        String        // Display name
+  description String?
+  notifications Notification[]
+
+  @@map("notification_type")
+  @@schema("habitracker_app")
+}
+
+model AchievementDefinition {
+  id            String        @id @default(uuid()) @db.Uuid
+  code          String        @unique  // e.g. CHALLENGE_COMPLETED, STREAK_7
+  name          String
+  description   String?
+  pointsDefault Int           @default(0)
+  isActive      Boolean       @default(true)
+  sortOrder     Int           @default(0)
+  rewardEvents  RewardEvent[]
+
+  @@map("achievement_definition")
+  @@schema("habitracker_app")
+}
+
+// --- AUTH SCHEMA MODELS (Shared Identity) ---
 
 model User {
-  id               String           @id @default(uuid())
-  email            String           @unique
+  id               String           @id @default(uuid()) @db.Uuid
+  email            String
   name             String?
   emailVerified    Boolean
   image            String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   
-  username         String?          @unique
-  subscriptionTier SubscriptionTier @default(FREE)
+  // Multi-tenancy support
+  originAppId      String           @default("habitracker")
+  
   lastActive       DateTime?
   deletedAt        DateTime?
 
   sessions         Session[]
   accounts         Account[]
   
+  // Global settings (security, theme choice etc)
   settings         UserSetting[]
-  blockedBy        UserBlock[]      @relation("blockedByUser")
-  blockedUsers     UserBlock[]      @relation("blockingUser")
-  followers        Follow[]         @relation("following")
-  following        Follow[]         @relation("follower")
   
-  // Cross-schema relation to Habit Tracker App
-  dailyStats       DailyStats[]
-  tasks            Task[]
-  posts            Post[]
-  challenges       ChallengeMember[]
-  comments         Comment[]
-  likes            Like[]
+  // Application specific profiles
+  habitProfile     HabitProfile?
 
-  @@index([username])
+  // External relations will now link predominantly to the AppProfile
+  // but for simpler queries we can keep some here if we want global access
+  
+  @@unique([email, originAppId]) // Key for per-app isolation
+  @@index([email])
   @@map("user")
   @@schema("auth")
 }
 
 model Session {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
-  userId    String
+  userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -100,11 +151,11 @@ model Session {
 }
 
 model Account {
-  id                    String    @id @default(uuid())
+  id                    String    @id @default(uuid()) @db.Uuid
   accountId             String
   providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String    @db.Uuid
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -121,7 +172,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   identifier String
   value      String
   expiresAt  DateTime
@@ -133,9 +184,9 @@ model Verification {
 }
 
 model UserSetting {
-  id        String @id @default(uuid())
-  userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   key       String
   value     String
 
@@ -144,74 +195,127 @@ model UserSetting {
   @@schema("auth")
 }
 
-model UserBlock {
-  id             String @id @default(uuid())
-  userId         String
-  blockedUserId  String
-  user           User   @relation("blockingUser", fields: [userId], references: [id])
-  blockedUser    User   @relation("blockedByUser", fields: [blockedUserId], references: [id])
+// --- HABITRACKER APP SCHEMA MODELS (Isolated Data & Profile) ---
 
-  @@unique([userId, blockedUserId])
+model HabitProfile {
+  userId           String           @id @db.Uuid
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  username         String           @unique
+  subscriptionTier SubscriptionTier @default(FREE)
+  bio              String?
+  points           Int              @default(0)
+  isTaggingAllowed Boolean          @default(true)
+  
+  // Social relations
+  followers        Follow[]         @relation("following")
+  following        Follow[]         @relation("follower")
+  blockedBy        UserBlock[]      @relation("blockedByUser")
+  blockedUsers     UserBlock[]      @relation("blockingUser")
+
+  // App specific data
+  dailyStats       DailyStats[]
+  tasks            Task[]
+  posts            Post[]
+  challenges       ChallengeMember[]
+  comments         Comment[]
+  likes            Like[]
+  notificationsReceived Notification[]  @relation("notificationReceiver")
+  notificationsSent     Notification[]  @relation("notificationSender")
+  groupMemberships      GroupMember[]
+  createdChallenges     Challenge[]    @relation("challengeCreator")
+  rewardEvents          RewardEvent[]
+
+  @@map("habit_profile")
+  @@schema("habitracker_app")
+}
+
+model UserBlock {
+  id             String       @id @default(uuid()) @db.Uuid
+  profileId      String       @db.Uuid
+  blockedId      String       @db.Uuid
+  profile        HabitProfile @relation("blockingUser", fields: [profileId], references: [userId])
+  blockedProfile HabitProfile @relation("blockedByUser", fields: [blockedId], references: [userId])
+
+  @@unique([profileId, blockedId])
   @@map("user_block")
-  @@schema("auth")
+  @@schema("habitracker_app")
 }
 
 model Follow {
-  followerId  String
-  followingId String
-  follower    User   @relation("follower", fields: [followerId], references: [id])
-  following   User   @relation("following", fields: [followingId], references: [id])
+  followerId  String  @db.Uuid
+  followingId String  @db.Uuid
+  follower    HabitProfile @relation("follower", fields: [followerId], references: [userId])
+  following   HabitProfile @relation("following", fields: [followingId], references: [userId])
 
   @@id([followerId, followingId])
   @@map("follows")
-  @@schema("auth")
+  @@schema("habitracker_app")
 }
 
-// --- HABITRACKER APP SCHEMA MODELS (Isolated Data) ---
-
 model DailyStats {
-  id             String   @id @default(uuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
-  recordDate     DateTime @db.Date
-  totalCompleted Int      @default(0)
-  activeStreak   Int      @default(0)
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  profile        HabitProfile @relation(fields: [userId], references: [userId])
+  recordDate     DateTime     @db.Date
+  totalCompleted Int          @default(0)
+  activeStreak   Int          @default(0)
 
   @@unique([userId, recordDate])
   @@map("daily_stats")
   @@schema("habitracker_app")
 }
 
+/// Single reward event – gamification history. HabitProfile.points = balance.
+model RewardEvent {
+  id                    String               @id @default(uuid()) @db.Uuid
+  userId                String               @db.Uuid
+  profile               HabitProfile         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  achievementDefinitionId String             @db.Uuid
+  achievementDefinition AchievementDefinition @relation(fields: [achievementDefinitionId], references: [id])
+  pointsAwarded         Int                  @default(0)  // can override vs definition.pointsDefault
+  sourceType            String?              // CHALLENGE | TASK | STREAK | SYSTEM
+  sourceId              String?
+  title                 String?
+  createdAt             DateTime             @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([achievementDefinitionId])
+  @@map("reward_event")
+  @@schema("habitracker_app")
+}
+
 model Task {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  categoryId   String?
-  category     Category? @relation(fields: [categoryId], references: [id])
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  profile        HabitProfile @relation(fields: [userId], references: [userId])
+  categoryId     String?      @db.Uuid
+  category       Category?    @relation(fields: [categoryId], references: [id])
+  challengeId    String?      @db.Uuid
+  challenge      Challenge?   @relation(fields: [challengeId], references: [id])
   
-  type         TaskType
+  type           TaskType
+  title          String
+  iconName       String?
+  colorValue     Int?
+  imageUrl       String?
   
-  title        String
-  iconName     String?
-  colorValue   Int?
-  imageUrl     String?
+  isPublic       Boolean      @default(false)
+  isDeleted      Boolean      @default(false)
+  isPredefined   Boolean      @default(false)
+  forkCount      Int          @default(0)
+  isForked       Boolean      @default(false)
+  originalTaskId String?      @db.Uuid
   
-  isPublic     Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  isPredefined Boolean  @default(false)
-  forkCount    Int      @default(0)
-  isForked     Boolean  @default(false)
-  originalTaskId String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  startDate      DateTime     @default(now())
+  endDate       DateTime?
   
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
-  startDate    DateTime @default(now())
-  endDate      DateTime?
-  
-  frequencyId  String?
-  frequency    TaskFrequency? @relation(fields: [frequencyId], references: [id])
-  notes        String[]
+  frequencyId    String?      @db.Uuid
+  frequency      TaskFrequency? @relation(fields: [frequencyId], references: [id])
+  notes          String[]
 
   habitDetails     HabitDetails?
   routineDetails   RoutineDetails?
@@ -223,23 +327,28 @@ model Task {
   pomodoroSettings PomodoroSettings?
 
   @@index([userId, isDeleted, createdAt(sort: Desc)])
+  @@index([challengeId])
   @@map("task")
   @@schema("habitracker_app")
 }
 
 model Category {
-  id           String  @id @default(uuid())
+  id           String   @id @default(uuid()) @db.Uuid
   name         String
   iconName     String?
   colorValue   Int?
+  imageUrl     String?
+  userId       String?  @db.Uuid // null or system user id = global/predefined
+  isPredefined Boolean  @default(false)
   tasks        Task[]
 
+  @@index([userId])
   @@map("category")
   @@schema("habitracker_app")
 }
 
 model TaskFrequency {
-  id             String        @id @default(uuid())
+  id             String        @id @default(uuid()) @db.Uuid
   type           String
   daysOfWeek     Int[]         
   dayOfMonth     Int?
@@ -253,11 +362,11 @@ model TaskFrequency {
 }
 
 model HabitDetails {
-  taskId       String         @id
+  taskId       String         @id @db.Uuid
   task         Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
   goalValue    Float
   currentValue Float          @default(0)
-  unitId       String?
+  unitId       String?        @db.Uuid
   unit         TaskUnit?      @relation(fields: [unitId], references: [id])
   direction    HabitDirection @default(POSITIVE)
 
@@ -266,17 +375,20 @@ model HabitDetails {
 }
 
 model TaskUnit {
-  id     String @id @default(uuid())
-  name   String
-  symbol String
-  habits HabitDetails[]
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  symbol       String
+  userId       String?  @db.Uuid // null or system user id = global/predefined
+  isPredefined Boolean  @default(false)
+  habits       HabitDetails[]
 
+  @@index([userId])
   @@map("task_unit")
   @@schema("habitracker_app")
 }
 
 model RoutineDetails {
-  taskId    String   @id
+  taskId    String   @id @db.Uuid
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   steps     String[]
   startTime String?
@@ -287,7 +399,7 @@ model RoutineDetails {
 }
 
 model TodoDetails {
-  taskId   String        @id
+  taskId   String        @id @db.Uuid
   task     Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
   dueTime  DateTime?
   priority TaskPriority  @default(NONE)
@@ -300,7 +412,7 @@ model TodoDetails {
 }
 
 model MindsetDetails {
-  taskId          String  @id
+  taskId          String  @id @db.Uuid
   task            Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
   affirmation     String? @db.Text
   durationMinutes Int?
@@ -310,8 +422,8 @@ model MindsetDetails {
 }
 
 model TodoSubtask {
-  id            String      @id @default(uuid())
-  todoDetailsId String
+  id            String      @id @default(uuid()) @db.Uuid
+  todoDetailsId String      @db.Uuid
   todoDetails   TodoDetails @relation(fields: [todoDetailsId], references: [taskId], onDelete: Cascade)
   title         String
   isCompleted   Boolean     @default(false)
@@ -321,8 +433,8 @@ model TodoSubtask {
 }
 
 model TaskReminder {
-  id           String   @id @default(uuid())
-  taskId       String
+  id           String   @id @default(uuid()) @db.Uuid
+  taskId       String   @db.Uuid
   task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   type         String   // TIME, LOCATION
   time         String?
@@ -337,20 +449,25 @@ model TaskReminder {
 }
 
 model TaskCompletion {
-  id            String   @id @default(uuid())
-  taskId        String
-  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  completedAt   DateTime @default(now())
-  value         Float?   
-  status        String?  
-  notes         String?
+  id          String   @id @default(uuid()) @db.Uuid
+  taskId      String   @db.Uuid
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+  /// Amount of units completed (e.g. 2.5 for "2.5 L water")
+  value       Float?
+  status      String?
+  /// Short note for this completion
+  notes       String?
+  /// Optional longer description or note
+  description String?  @db.Text
 
+  @@index([taskId, completedAt(sort: Desc)])
   @@map("task_completion")
   @@schema("habitracker_app")
 }
 
 model PomodoroSettings {
-  taskId            String   @id
+  taskId            String   @id @db.Uuid
   task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   focusDuration     Int      @default(25)
   breakDuration     Int      @default(5)
@@ -364,43 +481,58 @@ model PomodoroSettings {
   @@schema("habitracker_app")
 }
 
-// --- COMMUNITY (Part of Isolated Data) ---
-
 model Post {
-  id        String    @id @default(uuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  content   String?   @db.Text
-  imageUrl  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  comments  Comment[]
-  likes     Like[]
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @db.Uuid
+  profile           HabitProfile   @relation(fields: [userId], references: [userId])
+  groupId           String?        @db.Uuid
+  group             Group?         @relation(fields: [groupId], references: [id])
+  challengeId       String?        @db.Uuid
+  challenge         Challenge?     @relation(fields: [challengeId], references: [id])
+  content           String?       @db.Text
+  type              PostType      @default(TEXT)
+  mediaUrl          String?
+  visibility        PostVisibility @default(PUBLIC)
+  isAutoGenerated   Boolean       @default(false)
+  challengeTitle    String?
+  taggedUserIds     String[]
+  pendingTagUserIds String[]
+  rejectedTagUserIds String[]
+  hashtags          String[]
+  commentCount      Int           @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
+  comments          Comment[]
+  likes             Like[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([groupId])
+  @@index([challengeId])
   @@map("post")
   @@schema("habitracker_app")
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  content   String   @db.Text
-  createdAt DateTime @default(now())
+  id        String       @id @default(uuid()) @db.Uuid
+  postId    String       @db.Uuid
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String       @db.Uuid
+  profile   HabitProfile @relation(fields: [userId], references: [userId])
+  content   String       @db.Text
+  createdAt DateTime     @default(now())
 
+  @@index([postId])
   @@map("comment")
   @@schema("habitracker_app")
 }
 
 model Like {
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  postId    String  @db.Uuid
+  post      Post    @relation(fields: [postId], references: [id])
+  userId    String  @db.Uuid
+  profile   HabitProfile @relation(fields: [userId], references: [userId])
+  createdAt DateTime     @default(now())
 
   @@unique([postId, userId])
   @@map("like")
@@ -408,39 +540,97 @@ model Like {
 }
 
 model Challenge {
-  id          String            @id @default(uuid())
-  groupId     String
-  group       Group             @relation(fields: [groupId], references: [id])
-  title       String
-  description String?
-  startDate   DateTime
-  endDate     DateTime?
-  members     ChallengeMember[]
+  id                    String            @id @default(uuid()) @db.Uuid
+  groupId               String            @db.Uuid
+  group                 Group             @relation(fields: [groupId], references: [id])
+  creatorId             String            @db.Uuid
+  creator               HabitProfile      @relation("challengeCreator", fields: [creatorId], references: [userId])
+  title                 String
+  description           String?
+  status                ChallengeStatus  @default(ACTIVE)
+  imageUrl              String?
+  taskTemplate          Json?
+  startDate             DateTime
+  endDate               DateTime?
+  autoCreateTaskOnJoin  Boolean           @default(true)
+  autoPostOnProgress    Boolean           @default(true)
+  autoPostOnCompletion  Boolean           @default(true)
+  onTrackStreakThreshold Int              @default(3)
+  members               ChallengeMember[]
+  tasks                 Task[]
+  posts                 Post[]
 
   @@index([groupId])
+  @@index([creatorId])
   @@map("challenge")
   @@schema("habitracker_app")
 }
 
 model Group {
-  id          String      @id @default(uuid())
-  name        String
-  description String?
-  challenges  Challenge[]
+  id                 String       @id @default(uuid()) @db.Uuid
+  name               String
+  description        String?
+  coverImageUrl      String?
+  profileImageUrl    String?
+  isPublic           Boolean      @default(true)
+  allowMemberInvites Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  updatedBy          String?
+  challenges         Challenge[]
+  members            GroupMember[]
+  posts              Post[]
 
   @@map("group")
   @@schema("habitracker_app")
 }
 
+model GroupMember {
+  id       String       @id @default(uuid()) @db.Uuid
+  groupId  String       @db.Uuid
+  group    Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String       @db.Uuid
+  profile  HabitProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  role     String       // ADMIN | MEMBER
+  joinedAt DateTime    @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("group_member")
+  @@schema("habitracker_app")
+}
+
 model ChallengeMember {
-  challengeId   String
-  challenge     Challenge @relation(fields: [challengeId], references: [id])
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
-  currentStreak Int       @default(0)
-  joinedAt      DateTime  @default(now())
+  challengeId   String  @db.Uuid
+  challenge     Challenge    @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId        String  @db.Uuid
+  profile       HabitProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  currentStreak Int          @default(0)
+  joinedAt      DateTime     @default(now())
 
   @@id([challengeId, userId])
   @@map("challenge_member")
+  @@schema("habitracker_app")
+}
+
+model Notification {
+  id                 String             @id @default(uuid()) @db.Uuid
+  receiverId         String             @db.Uuid
+  receiver           HabitProfile       @relation("notificationReceiver", fields: [receiverId], references: [userId], onDelete: Cascade)
+  senderId           String             @db.Uuid
+  sender             HabitProfile       @relation("notificationSender", fields: [senderId], references: [userId], onDelete: Cascade)
+  notificationTypeId String             @db.Uuid
+  notificationType   NotificationTypeRef @relation(fields: [notificationTypeId], references: [id])
+  senderName         String
+  senderAvatar       String?
+  title              String
+  body               String             @db.Text
+  data               Json               @default("{}")
+  isRead             Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+
+  @@index([receiverId, isRead, createdAt(sort: Desc)])
+  @@index([notificationTypeId])
+  @@map("notification")
   @@schema("habitracker_app")
 }
