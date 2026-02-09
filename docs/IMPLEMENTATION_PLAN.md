@@ -4,17 +4,17 @@ Foundation is in place: auth (Better Auth + Nest), Prisma schema (auth + habitra
 
 ---
 
-## Phase 1: Task core (priority for app)
+## Phase 1: Task core (priority for app) ✅ Implemented
 
 | #   | Feature                | Description                                                                                                                                                                       |
 | --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1 | **List my tasks**      | GET `/tasks` – paginated, filter by type/deleted; use `findByUserId` from repo. Add `ListTasksUseCase`.                                                                           |
-| 1.2 | **Get task by id**     | GET `/tasks/:id` – single task with details; use `findById`. Add `GetTaskUseCase`.                                                                                                |
-| 1.3 | **Update task**        | PATCH `/tasks/:id` – update title, category, type-specific details; use `update`; ensure ownership (userId).                                                                      |
-| 1.4 | **Delete task (soft)** | DELETE `/tasks/:id` – set `isDeleted: true` (or call repo delete if already implemented as soft).                                                                                 |
-| 1.5 | **Task completions**   | POST `/tasks/:id/completions` – log completion (value, notes); GET `/tasks/:id/completions` – list (paginated). New use cases + endpoints (or sub-resource under TaskController). |
+| 1.1 | **List my tasks**      | GET `/tasks` – paginated (`limit`, `cursor`), filter by `type` (TaskType), `includeDeleted`; `ListTasksUseCase` + `findByUserId(..., filters)`.                                   |
+| 1.2 | **Get task by id**     | GET `/tasks/:id` – single task; `GetTaskUseCase` (ownership: 403 if not owner).                                                                                                   |
+| 1.3 | **Update task**        | PATCH `/tasks/:id` – `UpdateTaskDto` (title, categoryId, type-specific fields); ownership enforced.                                                                              |
+| 1.4 | **Delete task (soft)** | DELETE `/tasks/:id` – soft delete; `DeleteTaskUseCase` + repo `delete`.                                                                                                          |
+| 1.5 | **Task completions**  | POST `/tasks/:id/completions` – `LogCompletionDto` (value, notes, description); GET `/tasks/:id/completions` – paginated; ownership enforced.                                     |
 
-**Deliverable:** Flutter app can create, list, update, delete tasks and log completions.
+**Deliverable:** Flutter app can create, list, update, delete tasks and log completions. All task endpoints use `SessionGuard` and `@CurrentUser()` for `userId`.
 
 ---
 

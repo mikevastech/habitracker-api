@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppPrismaService } from '../../../../shared/infrastructure/prisma/app-prisma.service';
-import { ITaskRepository } from '../../domain/repositories/task.repository.interface';
+import { ITaskRemoteDataSource } from './task.remote.datasource.interface';
+import type { ListTasksFilters } from '../../domain/repositories/task.repository.interface';
 import {
   TaskEntity,
   TaskType,
@@ -12,6 +13,7 @@ import {
   HabitDirection as DomainHabitDirection,
   TaskPriority as DomainTaskPriority,
 } from '../../domain/entities/task.entity';
+import { TaskCompletionEntity } from '../../domain/entities/task-completion.entity';
 import {
   Prisma,
   TaskType as PrismaTaskType,
@@ -29,8 +31,8 @@ type PrismaTaskWithRelations = Prisma.TaskGetPayload<{
 }>;
 
 @Injectable()
-export class PrismaTaskRepository implements ITaskRepository {
-  constructor(private prisma: AppPrismaService) {}
+export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
+  constructor(private readonly prisma: AppPrismaService) {}
 
   async create(task: Partial<TaskEntity>): Promise<TaskEntity> {
     const data: Prisma.TaskCreateInput = {
@@ -116,19 +118,29 @@ export class PrismaTaskRepository implements ITaskRepository {
     userId: string,
     limit: number,
     cursor?: string,
+    filters?: ListTasksFilters,
   ): Promise<PaginatedResult<TaskEntity>> {
     const take = limit + 1;
+    const where: {
+      userId: string;
+      isDeleted?: boolean;
+      type?: (typeof PrismaTaskType)[keyof typeof PrismaTaskType];
+    } = { userId };
+    if (filters?.includeDeleted !== true) {
+      where.isDeleted = false;
+    }
+    if (filters?.taskType != null) {
+      where.type = filters.taskType as (typeof PrismaTaskType)[keyof typeof PrismaTaskType];
+    }
+
     const tasks = await this.prisma.task.findMany({
-      // We filter by userId which is the FK to the User/Profile
-      where: { userId, isDeleted: false },
-      take: take,
+      where,
+      take,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
       orderBy: { createdAt: 'desc' },
       include: {
-        habitDetails: {
-          include: { unit: true },
-        },
+        habitDetails: { include: { unit: true } },
         routineDetails: true,
         todoDetails: true,
         mindsetDetails: true,
@@ -215,14 +227,70 @@ export class PrismaTaskRepository implements ITaskRepository {
     });
   }
 
+  async createCompletion(
+    taskId: string,
+    data: Partial<TaskCompletionEntity>,
+  ): Promise<TaskCompletionEntity> {
+    const row = await this.prisma.taskCompletion.create({
+      data: {
+        taskId,
+        value: data.value,
+        status: data.status ?? undefined,
+        notes: data.notes ?? undefined,
+        description: data.description ?? undefined,
+      },
+    });
+    return new TaskCompletionEntity({
+      id: row.id,
+      taskId: row.taskId,
+      completedAt: row.completedAt,
+      value: row.value,
+      status: row.status,
+      notes: row.notes,
+      description: row.description,
+    });
+  }
+
+  async findCompletionsByTaskId(
+    taskId: string,
+    limit: number,
+    cursor?: string,
+  ): Promise<PaginatedResult<TaskCompletionEntity>> {
+    const take = limit + 1;
+    const rows = await this.prisma.taskCompletion.findMany({
+      where: { taskId },
+      take,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: { completedAt: 'desc' },
+    });
+
+    const hasNextPage = rows.length > limit;
+    const items = hasNextPage ? rows.slice(0, limit) : rows;
+    const nextCursor = hasNextPage ? items[items.length - 1].id : undefined;
+
+    return {
+      data: items.map(
+        (r) =>
+          new TaskCompletionEntity({
+            id: r.id,
+            taskId: r.taskId,
+            completedAt: r.completedAt,
+            value: r.value,
+            status: r.status,
+            notes: r.notes,
+            description: r.description,
+          }),
+      ),
+      nextCursor,
+    };
+  }
+
   private mapToEntity(prismaTask: PrismaTaskWithRelations): TaskEntity {
     const { habitDetails, routineDetails, todoDetails, mindsetDetails, ...rest } = prismaTask;
-    const typeName = prismaTask.type as unknown as TaskType; // Cast na naš Domain Enum
+    const typeName = prismaTask.type as unknown as TaskType;
 
-    const baseData = {
-      ...rest,
-      taskType: typeName,
-    };
+    const baseData = { ...rest, taskType: typeName };
 
     switch (typeName) {
       case TaskType.HABIT:

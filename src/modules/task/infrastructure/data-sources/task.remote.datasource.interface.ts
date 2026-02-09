@@ -1,12 +1,8 @@
-import { TaskEntity, PaginatedResult, TaskType } from '../entities/task.entity';
-import { TaskCompletionEntity } from '../entities/task-completion.entity';
+import { TaskEntity, PaginatedResult } from '../../domain/entities/task.entity';
+import { TaskCompletionEntity } from '../../domain/entities/task-completion.entity';
+import type { ListTasksFilters } from '../../domain/repositories/task.repository.interface';
 
-export interface ListTasksFilters {
-  taskType?: TaskType;
-  includeDeleted?: boolean;
-}
-
-export interface ITaskRepository {
+export interface ITaskRemoteDataSource {
   create(task: Partial<TaskEntity>): Promise<TaskEntity>;
   findById(id: string): Promise<TaskEntity | null>;
   findByUserId(
@@ -29,4 +25,4 @@ export interface ITaskRepository {
   ): Promise<PaginatedResult<TaskCompletionEntity>>;
 }
 
-export const ITaskRepository = Symbol('ITaskRepository');
+export const ITaskRemoteDataSource = Symbol('ITaskRemoteDataSource');
