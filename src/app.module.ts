@@ -7,11 +7,12 @@ import { RedisModule } from './shared/infrastructure/redis/redis.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { TaskModule } from './modules/task/task.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CommunityModule } from './modules/community/community.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- @nestjs/throttler types not resolved by ESLint
+
     ThrottlerModule.forRoot([
       {
         name: 'short',
@@ -34,6 +35,7 @@ import { AuthModule } from './modules/auth/auth.module';
     AuthModule,
     TaskModule,
     ProfileModule,
+    CommunityModule,
   ],
   providers: [
     {

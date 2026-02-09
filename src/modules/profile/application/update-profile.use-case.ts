@@ -6,6 +6,7 @@ export class UpdateProfileDto {
   username?: string;
   bio?: string;
   isTaggingAllowed?: boolean;
+  avatarUrl?: string | null;
 }
 
 @Injectable()
@@ -20,6 +21,7 @@ export class UpdateProfileUseCase {
       username: dto.username,
       bio: dto.bio,
       isTaggingAllowed: dto.isTaggingAllowed,
+      avatarUrl: dto.avatarUrl,
     };
 
     return this.profileRepository.update(userId, data);

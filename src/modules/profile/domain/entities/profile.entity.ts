@@ -11,6 +11,7 @@ export class HabitProfileEntity {
   bio!: string | null;
   points!: number;
   isTaggingAllowed!: boolean;
+  avatarUrl?: string | null;
 
   // Counters or simplified relations for the domain
   followerCount?: number;

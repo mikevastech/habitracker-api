@@ -29,6 +29,11 @@ export class ProfileRepositoryImpl implements IProfileRepository {
     return remote;
   }
 
+  async findByUsername(username: string): Promise<HabitProfileEntity | null> {
+    // Usually used for uniqueness checks, go direct to remote or implement specific cache if needed
+    return this.remoteDataSource.findByUsername(username);
+  }
+
   async update(userId: string, data: Partial<HabitProfileEntity>): Promise<HabitProfileEntity> {
     const updated = await this.remoteDataSource.update(userId, data);
     await this.localDataSource.setCachedProfile(userId, updated);

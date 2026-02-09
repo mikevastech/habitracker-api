@@ -12,6 +12,7 @@ function toEntity(row: {
   points: number;
   isTaggingAllowed: boolean;
   _count: { followers: number; following: number };
+  user?: { image: string | null };
 }): HabitProfileEntity {
   return new HabitProfileEntity({
     userId: row.userId,
@@ -20,6 +21,7 @@ function toEntity(row: {
     bio: row.bio,
     points: row.points,
     isTaggingAllowed: row.isTaggingAllowed,
+    avatarUrl: row.user?.image ?? null,
     followerCount: row._count.followers,
     followingCount: row._count.following,
   });
@@ -33,6 +35,22 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     const profile = await this.prisma.habitProfile.findUnique({
       where: { userId },
       include: {
+        user: { select: { image: true } },
+        _count: {
+          select: { followers: true, following: true },
+        },
+      },
+    });
+
+    if (!profile) return null;
+    return toEntity(profile);
+  }
+
+  async findByUsername(username: string): Promise<HabitProfileEntity | null> {
+    const profile = await this.prisma.habitProfile.findUnique({
+      where: { username },
+      include: {
+        user: { select: { image: true } },
         _count: {
           select: { followers: true, following: true },
         },
@@ -44,6 +62,15 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async update(userId: string, data: Partial<HabitProfileEntity>): Promise<HabitProfileEntity> {
+    // If username is being updated, we check uniqueness (handled in use case or here)
+    // If avatarUrl is being updated, we update the User model
+    if (data.avatarUrl !== undefined) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { image: data.avatarUrl },
+      });
+    }
+
     const updated = await this.prisma.habitProfile.update({
       where: { userId },
       data: {
@@ -56,6 +83,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
         isTaggingAllowed: data.isTaggingAllowed,
       },
       include: {
+        user: { select: { image: true } },
         _count: {
           select: { followers: true, following: true },
         },
@@ -75,6 +103,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
           : 'FREE',
       },
       include: {
+        user: { select: { image: true } },
         _count: {
           select: { followers: true, following: true },
         },
