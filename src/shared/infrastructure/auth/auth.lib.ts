@@ -24,6 +24,8 @@ if (sgResidency === 'eu') {
 const isDev = process.env.NODE_ENV !== 'production';
 
 const authOptions = {
+  baseURL: process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:3000',
+  secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
