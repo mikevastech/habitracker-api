@@ -14,8 +14,10 @@ const core_1 = require("@nestjs/core");
 const prisma_module_1 = require("./shared/infrastructure/prisma/prisma.module");
 const redis_module_1 = require("./shared/infrastructure/redis/redis.module");
 const profile_module_1 = require("./modules/profile/profile.module");
+const suggestions_queue_module_1 = require("./modules/profile/infrastructure/queue/suggestions-queue.module");
 const task_module_1 = require("./modules/task/task.module");
 const auth_module_1 = require("./modules/auth/auth.module");
+const community_module_1 = require("./modules/community/community.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -45,6 +47,8 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             task_module_1.TaskModule,
             profile_module_1.ProfileModule,
+            suggestions_queue_module_1.SuggestionsQueueModule,
+            community_module_1.CommunityModule,
         ],
         providers: [
             {

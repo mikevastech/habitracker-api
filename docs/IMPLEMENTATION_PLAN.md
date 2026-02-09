@@ -1,87 +1,102 @@
 # Implementation plan
 
-Foundation is in place: auth (Better Auth + Nest), Prisma schema (auth + habitracker_app), seed (categories, units, templates), profile (get/update), task (create), reference (categories, units, templates). Below is a suggested order for the rest.
+Foundation is in place: auth (Better Auth + Nest), Prisma schema (auth + habitracker_app), seed (categories, units, templates), profile (get/update), task (create), reference (categories, units, templates). Below is the order and what each phase covers.
 
 ---
 
-## Phase 1: Task core (priority for app) ✅ Implemented
+## User vs profile vs task settings (schema)
 
-| #   | Feature                | Description                                                                                                                                     |
-| --- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1 | **List my tasks**      | GET `/tasks` – paginated (`limit`, `cursor`), filter by `type` (TaskType), `includeDeleted`; `ListTasksUseCase` + `findByUserId(..., filters)`. |
-| 1.2 | **Get task by id**     | GET `/tasks/:id` – single task; `GetTaskUseCase` (ownership: 403 if not owner).                                                                 |
-| 1.3 | **Update task**        | PATCH `/tasks/:id` – `UpdateTaskDto` (title, categoryId, type-specific fields); ownership enforced.                                             |
-| 1.4 | **Delete task (soft)** | DELETE `/tasks/:id` – soft delete; `DeleteTaskUseCase` + repo `delete`.                                                                         |
-| 1.5 | **Task completions**   | POST `/tasks/:id/completions` – `LogCompletionDto` (value, notes, description); GET `/tasks/:id/completions` – paginated; ownership enforced.   |
+- **UserSetting (auth schema)** – key/value per user for _global_ prefs: theme, locale, security. Managed by Better Auth or optional API `GET/PATCH /user/settings` (key/value). Not required for Flutter if app uses local storage for theme/locale.
+- **ProfileSettings (habitracker_app)** – 1:1 with HabitProfile. _App-specific_: privacy (isSearchable, analyticsEnabled, profileVisibility, challengeVisibility, challengePostVisibility), **task defaults** (taskDailyReminderTime, taskWeekStartDay, taskArchiveVisible), **pomodoro defaults** (focus/break/longBreak duration). Implement as `GET/PATCH /profile/me/settings`. Flutter “Privacy & Social” and “task defaults” map here.
+- **Task-level settings** – Per-task: reminders (TaskReminder), pomodoro (PomodoroSettings). Already covered by task CRUD or can be extended. No separate “task settings” API needed beyond task update.
 
-**Deliverable:** Flutter app can create, list, update, delete tasks and log completions. All task endpoints use `SessionGuard` and `@CurrentUser()` for `userId`.
+**Conclusion:** Implement **ProfileSettings** only (GET/PATCH). UserSetting (auth) can be added later if we need theme/locale in API.
 
 ---
 
-## Data sources & cache (task + reference)
+## Phase 1: Task core ✅ Implemented
 
-- **Task module**: `ITaskRemoteDataSource` (Prisma) + `ITaskLocalDataSource` (Redis). Repository uses remote for all writes and for list/completions; for **findById** it uses cache-first (TTL 5 min), invalidates cache on update/delete. **Completions count**: on each `createCompletion` we `INCR` Redis key `task:completions:{taskId}:{date}` so stats (e.g. “completions today”) can be read from Redis without DB count; key kept ~32 days.
-- **Reference module**: already has remote (Prisma) + local (Redis) with cache-first for categories/units/templates (TTL 7 days).
-- **Profile module**: remote + local (cache profile by userId, invalidate on update).
-
----
-
-## Phase 2: Profile & references
-
-| #   | Feature                                | Description                                                                                                                                                    |
-| --- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2.1 | **Protect task/reference**             | Ensure task endpoints use `SessionGuard` and resolve `userId` from `@CurrentUser()` (not from body).                                                           |
-| 2.2 | **Reference over use case (optional)** | Move categories/units/templates behind use cases + repo if you want strict Clean Architecture; otherwise keep current Prisma-in-controller for reference only. |
-| 2.3 | **Profile extras**                     | Avatar upload (URL or storage), username uniqueness check, or leave as-is.                                                                                     |
+| #   | Feature                | Description                                             |
+| --- | ---------------------- | ------------------------------------------------------- |
+| 1.1 | **List my tasks**      | GET `/tasks` – paginated, filter by type/deleted.       |
+| 1.2 | **Get task by id**     | GET `/tasks/:id` – ownership enforced.                  |
+| 1.3 | **Update task**        | PATCH `/tasks/:id` – ownership enforced.                |
+| 1.4 | **Delete task (soft)** | DELETE `/tasks/:id`.                                    |
+| 1.5 | **Task completions**   | POST/GET `/tasks/:id/completions` – ownership enforced. |
 
 ---
 
-## Phase 3: Community (posts, social)
+## Phase 2: Profile & references ✅ Done
 
-| #   | Feature              | Description                                                                                      |
-| --- | -------------------- | ------------------------------------------------------------------------------------------------ |
-| 3.1 | **Posts**            | Create post (TEXT/IMAGE, visibility, groupId); list feed (user’s + followed); get by id; delete. |
-| 3.2 | **Comments & likes** | Add comment, list comments; like/unlike post.                                                    |
-| 3.3 | **Follows**          | Follow/unfollow user; list followers/following.                                                  |
-| 3.4 | **Groups**           | Create group, list (public + mine), join/leave, members; optional invite flow.                   |
-
-Schema already has Post, Comment, Like, Follow, Group, GroupMember.
+| #   | Feature                    | Status                                                                          |
+| --- | -------------------------- | ------------------------------------------------------------------------------- |
+| 2.1 | **Protect task/reference** | Task endpoints use `SessionGuard` + `@CurrentUser()`; reference has use cases.  |
+| 2.2 | **Reference use cases**    | Categories, units, task templates behind use cases + repo + Redis cache.        |
+| 2.3 | **Profile extras**         | Username uniqueness (`check-username`); avatar via profile update (User.image). |
 
 ---
 
-## Phase 4: Challenges
+## Phase 3: Profile settings ✅ Implemented
 
-| #   | Feature        | Description                                                                                                 |
-| --- | -------------- | ----------------------------------------------------------------------------------------------------------- |
-| 4.1 | **Challenges** | Create challenge (group, task template, dates); list (active by group/user); join/leave.                    |
-| 4.2 | **Progress**   | Link task completions to challenge; “on track” / “falling behind” (use schema fields); optional auto-posts. |
-| 4.3 | **Completion** | Mark challenge completed; award points (RewardEvent).                                                       |
+| #   | Feature              | Description                                                                                    |
+| --- | -------------------- | ---------------------------------------------------------------------------------------------- |
+| 3.1 | **Profile settings** | GET `/profile/me/settings` – return ProfileSettings (create with defaults if missing).         |
+| 3.2 | **Update settings**  | PATCH `/profile/me/settings` – privacy, task defaults, pomodoro defaults (align with Flutter). |
+
+Schema: `ProfileSettings` (userId PK, 1:1 HabitProfile); fields: isSearchable, analyticsEnabled, profileVisibility, challengeVisibility, challengePostVisibility, taskDailyReminderTime, taskWeekStartDay, taskArchiveVisible, pomodoro\*.
+
+---
+
+## Phase 4: Community (follows, groups, posts)
+
+| #   | Feature     | Status  | Description                                                                                                                         |
+| --- | ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1 | **Follows** | ✅      | POST `/profile/me/following/:userId` follow, DELETE unfollow; GET `/profile/me/followers`, GET `/profile/me/following` (paginated). |
+| 4.2 | **Groups**  | TODO    | Create group, list (public + mine), get by id, join/leave, list members.                                                            |
+| 4.3 | **Posts**   | partial | Create, list, like, comments exist; add GET by id, DELETE, feed by followed.                                                        |
+
+Schema: Follow, Group, GroupMember, Post, Comment, Like.
+
+---
+
+## Phase 5: Challenges
+
+| #   | Feature        | Description                                                             |
+| --- | -------------- | ----------------------------------------------------------------------- |
+| 5.1 | **Challenges** | Create (group, task template, dates); list (by group/user); join/leave. |
+| 5.2 | **Progress**   | Link task completions to challenge; on track / falling behind.          |
+| 5.3 | **Completion** | Mark challenge completed; award points (RewardEvent).                   |
 
 Schema: Challenge, ChallengeMember, Task.challengeId, RewardEvent.
 
 ---
 
-## Phase 5: Notifications & gamification
+## Phase 6: Notifications & gamification
 
-| #   | Feature              | Description                                                                                                               |
-| --- | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 5.1 | **Notifications**    | List (by user, paginated); mark read; optional push later.                                                                |
-| 5.2 | **Rewards / points** | Expose HabitProfile.points; list RewardEvent history; trigger rewards on completions/streaks (backend jobs or on-demand). |
-| 5.3 | **Achievements**     | List achievement definitions; user progress toward definitions (e.g. “7-day streak”).                                     |
-
-Schema: Notification, NotificationTypeRef, RewardEvent, AchievementDefinition.
+| #   | Feature              | Description                                    |
+| --- | -------------------- | ---------------------------------------------- |
+| 6.1 | **Notifications**    | List (by user, paginated); mark read.          |
+| 6.2 | **Rewards / points** | HabitProfile.points; list RewardEvent history. |
+| 6.3 | **Achievements**     | List achievement definitions; user progress.   |
 
 ---
 
-## Phase 6: Polish & production
+## Phase 7: Polish & production
 
-- **Flutter client** – point API base URL to this backend; use Better Auth client for sign-in/session.
-- **Validation** – DTOs with class-validator where useful.
-- **Tests** – e2e for auth + task CRUD; unit for use cases.
-- **Deploy** – env (BETTER_AUTH_URL, DATABASE_URL, secrets), migrations, optional Redis for cache/session.
+- Flutter client – API base URL, Better Auth client.
+- Validation – DTOs with class-validator.
+- Tests – e2e/unit.
+- Deploy – env, migrations, Redis.
 
 ---
 
-## Suggested next step
+## Data sources & cache (existing)
 
-Start with **Phase 1.1 (list tasks)** and **1.5 (completions)** so the app can show tasks and log completions; then 1.2–1.4 (get/update/delete). After that, Phase 2 (guards + ownership) and then community/challenges as needed.
+- **Task**: remote (Prisma) + local (Redis) – task by id cache, completions counter.
+- **Reference**: remote + local (Redis) – categories/units/templates, TTL 7 days.
+- **Profile**: remote + local (Redis) for profile; **Follow** has dedicated **IFollowLocalDataSource** (Redis):
+  - **Counters**: `user:{id}:followers_count`, `user:{id}:following_count` – INCR/DECR on follow/unfollow; used for profile counts and instant SCARD-style read. TTL 30 days, refresh on access.
+  - **Sets**: `user:{id}:following`, `user:{id}:followers` – SADD/SREM on follow/unfollow; SISMEMBER for isFollowing, SMEMBERS for fan-out and SINTER for mutual follows. TTL 30 days.
+  - **Feed inbox**: `user:{id}:feed` – Sorted Set (score = timestamp); fan-out on post create (add post to each follower’s feed); GET feed = ZREVRANGE. TTL 7 days.
+  - **Invalidation**: Unfollow updates Postgres then Redis (SREM both sets, DECR both counters).
+  - **Reconcile**: Counts are warmed when read from DB (setCounters). Optional: cron or on-login job to repopulate sets from DB for active users.

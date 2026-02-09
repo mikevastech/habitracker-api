@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IPostRepository } from '../domain/repositories/post.repository.interface';
+import { IFollowLocalDataSource } from '../../profile/infrastructure/data-sources/follow.local.datasource.interface';
 import { PostEntity, PostType, PostVisibility } from '../domain/entities/community.entity';
 
 export interface CreatePostDto {
@@ -19,6 +20,8 @@ export class CreatePostUseCase {
   constructor(
     @Inject(IPostRepository)
     private readonly postRepository: IPostRepository,
+    @Inject(IFollowLocalDataSource)
+    private readonly followLocalDataSource: IFollowLocalDataSource,
   ) {}
 
   async execute(dto: CreatePostDto): Promise<PostEntity> {
@@ -35,6 +38,16 @@ export class CreatePostUseCase {
       hashtags: dto.hashtags || [],
     };
 
-    return this.postRepository.create(postData);
+    const created = await this.postRepository.create(postData);
+    try {
+      await this.followLocalDataSource.addPostToFollowersFeeds(
+        created.userId,
+        created.id,
+        created.createdAt,
+      );
+    } catch {
+      // Redis fan-out failure; post is created, feed may be eventually consistent
+    }
+    return created;
   }
 }

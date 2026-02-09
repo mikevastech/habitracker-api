@@ -4,6 +4,31 @@ export enum SubscriptionTier {
   LIFETIME = 'LIFETIME',
 }
 
+export enum PostVisibility {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}
+
+/** App-level settings (privacy, task defaults, pomodoro). 1:1 with HabitProfile. */
+export class ProfileSettingsEntity {
+  userId!: string;
+  isSearchable!: boolean;
+  analyticsEnabled!: boolean;
+  profileVisibility!: PostVisibility;
+  challengeVisibility!: PostVisibility;
+  challengePostVisibility!: PostVisibility;
+  taskDailyReminderTime!: string | null;
+  taskWeekStartDay!: number;
+  taskArchiveVisible!: boolean;
+  pomodoroFocusDuration!: number;
+  pomodoroBreakDuration!: number;
+  pomodoroLongBreakDuration!: number;
+
+  constructor(partial: Partial<ProfileSettingsEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
 export class HabitProfileEntity {
   userId!: string;
   username!: string;

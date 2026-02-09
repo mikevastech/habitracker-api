@@ -257,8 +257,34 @@ model HabitProfile {
   groupMemberships      GroupMember[]
   createdChallenges     Challenge[]    @relation("challengeCreator")
   rewardEvents          RewardEvent[]
+  settings              ProfileSettings?
 
   @@map("habit_profile")
+  @@schema("habitracker_app")
+}
+
+model ProfileSettings {
+  userId           String           @id @db.Uuid
+  profile          HabitProfile     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  // Privacy & Social
+  isSearchable     Boolean          @default(true)
+  analyticsEnabled Boolean          @default(true)
+  profileVisibility PostVisibility   @default(PUBLIC)
+  challengeVisibility PostVisibility @default(PUBLIC)
+  challengePostVisibility PostVisibility @default(PUBLIC)
+
+  // Task Defaults
+  taskDailyReminderTime String?     // HH:mm
+  taskWeekStartDay     Int          @default(1) // 1=Mon, 7=Sun
+  taskArchiveVisible   Boolean      @default(false)
+  
+  // Pomodoro Defaults
+  pomodoroFocusDuration Int         @default(25)
+  pomodoroBreakDuration Int         @default(5)
+  pomodoroLongBreakDuration Int     @default(15)
+
+  @@map("profile_settings")
   @@schema("habitracker_app")
 }
 
