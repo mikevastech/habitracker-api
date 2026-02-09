@@ -1,24 +1,30 @@
-// This is your Prisma schema file
+// This is your Prisma schema file documentation: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth", "habitracker_app"]
 }
 
 // --- ENUMS ---
+
 enum TaskType {
   HABIT
   ROUTINE
   TODO
   MINDSET
+
+  @@schema("habitracker_app")
 }
 
 enum HabitDirection {
   POSITIVE // Increase/Maintain
   NEGATIVE // Decrease/Quit
+
+  @@schema("habitracker_app")
 }
 
 enum TaskPriority {
@@ -27,26 +33,30 @@ enum TaskPriority {
   MEDIUM
   HIGH
   URGENT
+
+  @@schema("habitracker_app")
 }
 
 enum SubscriptionTier {
   FREE
   PRO
   LIFETIME
+
+  @@schema("auth")
 }
 
-// --- MODELS ---
+// --- AUTH SCHEMA MODELS (Shared) ---
 
 model User {
-  id               String    @id @default(uuid())
-  email            String    @unique
+  id               String           @id @default(uuid())
+  email            String           @unique
   name             String?
   emailVerified    Boolean
   image            String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   
-  username         String?   @unique
+  username         String?          @unique
   subscriptionTier SubscriptionTier @default(FREE)
   lastActive       DateTime?
   deletedAt        DateTime?
@@ -59,6 +69,8 @@ model User {
   blockedUsers     UserBlock[]      @relation("blockingUser")
   followers        Follow[]         @relation("following")
   following        Follow[]         @relation("follower")
+  
+  // Cross-schema relation to Habit Tracker App
   dailyStats       DailyStats[]
   tasks            Task[]
   posts            Post[]
@@ -68,6 +80,7 @@ model User {
 
   @@index([username])
   @@map("user")
+  @@schema("auth")
 }
 
 model Session {
@@ -83,6 +96,7 @@ model Session {
 
   @@index([userId])
   @@map("session")
+  @@schema("auth")
 }
 
 model Account {
@@ -103,6 +117,7 @@ model Account {
 
   @@index([userId])
   @@map("account")
+  @@schema("auth")
 }
 
 model Verification {
@@ -114,6 +129,7 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+  @@schema("auth")
 }
 
 model UserSetting {
@@ -125,6 +141,7 @@ model UserSetting {
 
   @@unique([userId, key])
   @@map("user_setting")
+  @@schema("auth")
 }
 
 model UserBlock {
@@ -136,6 +153,7 @@ model UserBlock {
 
   @@unique([userId, blockedUserId])
   @@map("user_block")
+  @@schema("auth")
 }
 
 model Follow {
@@ -146,7 +164,10 @@ model Follow {
 
   @@id([followerId, followingId])
   @@map("follows")
+  @@schema("auth")
 }
+
+// --- HABITRACKER APP SCHEMA MODELS (Isolated Data) ---
 
 model DailyStats {
   id             String   @id @default(uuid())
@@ -158,9 +179,8 @@ model DailyStats {
 
   @@unique([userId, recordDate])
   @@map("daily_stats")
+  @@schema("habitracker_app")
 }
-
-// --- TASK MODULE ---
 
 model Task {
   id           String   @id @default(uuid())
@@ -169,7 +189,7 @@ model Task {
   categoryId   String?
   category     Category? @relation(fields: [categoryId], references: [id])
   
-  type         TaskType // Sada je Enum
+  type         TaskType
   
   title        String
   iconName     String?
@@ -193,7 +213,6 @@ model Task {
   frequency    TaskFrequency? @relation(fields: [frequencyId], references: [id])
   notes        String[]
 
-  // Detalji u posebnim tabelama (1:1)
   habitDetails     HabitDetails?
   routineDetails   RoutineDetails?
   todoDetails      TodoDetails?
@@ -205,6 +224,7 @@ model Task {
 
   @@index([userId, isDeleted, createdAt(sort: Desc)])
   @@map("task")
+  @@schema("habitracker_app")
 }
 
 model Category {
@@ -215,6 +235,7 @@ model Category {
   tasks        Task[]
 
   @@map("category")
+  @@schema("habitracker_app")
 }
 
 model TaskFrequency {
@@ -228,6 +249,7 @@ model TaskFrequency {
   tasks          Task[]
 
   @@map("task_frequency")
+  @@schema("habitracker_app")
 }
 
 model HabitDetails {
@@ -240,6 +262,7 @@ model HabitDetails {
   direction    HabitDirection @default(POSITIVE)
 
   @@map("habit_details")
+  @@schema("habitracker_app")
 }
 
 model TaskUnit {
@@ -249,6 +272,7 @@ model TaskUnit {
   habits HabitDetails[]
 
   @@map("task_unit")
+  @@schema("habitracker_app")
 }
 
 model RoutineDetails {
@@ -259,6 +283,7 @@ model RoutineDetails {
   endTime   String?
 
   @@map("routine_details")
+  @@schema("habitracker_app")
 }
 
 model TodoDetails {
@@ -271,6 +296,7 @@ model TodoDetails {
   subtasks TodoSubtask[]
 
   @@map("todo_details")
+  @@schema("habitracker_app")
 }
 
 model MindsetDetails {
@@ -280,6 +306,7 @@ model MindsetDetails {
   durationMinutes Int?
 
   @@map("mindset_details")
+  @@schema("habitracker_app")
 }
 
 model TodoSubtask {
@@ -290,6 +317,7 @@ model TodoSubtask {
   isCompleted   Boolean     @default(false)
 
   @@map("todo_subtask")
+  @@schema("habitracker_app")
 }
 
 model TaskReminder {
@@ -305,6 +333,7 @@ model TaskReminder {
   isEnabled    Boolean  @default(true)
 
   @@map("task_reminder")
+  @@schema("habitracker_app")
 }
 
 model TaskCompletion {
@@ -312,11 +341,12 @@ model TaskCompletion {
   taskId        String
   task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   completedAt   DateTime @default(now())
-  value         Float?   // Za habije (npr. popio 0.5L vode)
-  status        String?  // Za rutine (npr. "PARTIAL", "COMPLETED")
+  value         Float?   
+  status        String?  
   notes         String?
 
   @@map("task_completion")
+  @@schema("habitracker_app")
 }
 
 model PomodoroSettings {
@@ -331,9 +361,10 @@ model PomodoroSettings {
   autoStartFocus    Boolean  @default(false)
 
   @@map("pomodoro_settings")
+  @@schema("habitracker_app")
 }
 
-// --- COMMUNITY MODULE ---
+// --- COMMUNITY (Part of Isolated Data) ---
 
 model Post {
   id        String    @id @default(uuid())
@@ -348,6 +379,7 @@ model Post {
   likes     Like[]
 
   @@map("post")
+  @@schema("habitracker_app")
 }
 
 model Comment {
@@ -360,6 +392,7 @@ model Comment {
   createdAt DateTime @default(now())
 
   @@map("comment")
+  @@schema("habitracker_app")
 }
 
 model Like {
@@ -371,6 +404,7 @@ model Like {
 
   @@unique([postId, userId])
   @@map("like")
+  @@schema("habitracker_app")
 }
 
 model Challenge {
@@ -385,6 +419,7 @@ model Challenge {
 
   @@index([groupId])
   @@map("challenge")
+  @@schema("habitracker_app")
 }
 
 model Group {
@@ -394,6 +429,7 @@ model Group {
   challenges  Challenge[]
 
   @@map("group")
+  @@schema("habitracker_app")
 }
 
 model ChallengeMember {
@@ -406,4 +442,5 @@ model ChallengeMember {
 
   @@id([challengeId, userId])
   @@map("challenge_member")
+  @@schema("habitracker_app")
 }
