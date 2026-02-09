@@ -49,23 +49,23 @@ Schema: `ProfileSettings` (userId PK, 1:1 HabitProfile); fields: isSearchable, a
 
 ## Phase 4: Community (follows, groups, posts)
 
-| #   | Feature     | Status | Description                                                                                                                         |
-| --- | ----------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 4.1 | **Follows** | ✅     | POST `/profile/me/following/:userId` follow, DELETE unfollow; GET `/profile/me/followers`, GET `/profile/me/following` (paginated). |
+| #   | Feature     | Status | Description                                                                                                                                                                                                            |
+| --- | ----------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1 | **Follows** | ✅     | POST `/profile/me/following/:userId` follow, DELETE unfollow; GET `/profile/me/followers`, GET `/profile/me/following` (paginated).                                                                                    |
 | 4.2 | **Groups**  | ✅     | POST `/groups` create, GET `/groups` list (public + mine), GET `/groups/:id`, POST `/groups/:id/join`, DELETE `/groups/:id/members/me`, GET `/groups/:id/members`. Repository, remote/local data sources, Redis cache. |
-| 4.3 | **Posts**   | ✅     | Create, list, like, comments; GET `/posts/:id`, DELETE `/posts/:id`, GET `/posts/feed` (by followed).                                |
+| 4.3 | **Posts**   | ✅     | Create, list, like, comments; GET `/posts/:id`, DELETE `/posts/:id`, GET `/posts/feed` (by followed).                                                                                                                  |
 
 Schema: Follow, Group, GroupMember, Post, Comment, Like.
 
 ---
 
-## Phase 5: Challenges
+## Phase 5: Challenges ✅ Implemented
 
-| #   | Feature        | Description                                                             |
-| --- | -------------- | ----------------------------------------------------------------------- |
-| 5.1 | **Challenges** | Create (group, task template, dates); list (by group/user); join/leave. |
-| 5.2 | **Progress**   | Link task completions to challenge; on track / falling behind.          |
-| 5.3 | **Completion** | Mark challenge completed; award points (RewardEvent).                   |
+| #   | Feature        | Status | Description                                                                                                                                                                                                        |
+| --- | -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 5.1 | **Challenges** | ✅     | POST `/challenges` create (group, task template, dates); GET list (by group/user); GET `/:id`; POST `/:id/join`, DELETE `/:id/members/me`; GET `/:id/members`. Repository, remote/local data sources, Redis cache. |
+| 5.2 | **Progress**   | ✅     | GET `/challenges/:id/progress` – currentStreak, onTrack (vs onTrackStreakThreshold).                                                                                                                               |
+| 5.3 | **Completion** | ✅     | POST `/challenges/:id/complete` (creator only); status → COMPLETED; RewardEvent + HabitProfile.points for each member.                                                                                             |
 
 Schema: Challenge, ChallengeMember, Task.challengeId, RewardEvent.
 
@@ -73,19 +73,23 @@ Schema: Challenge, ChallengeMember, Task.challengeId, RewardEvent.
 
 ## Phase 6: Notifications & gamification
 
-| #   | Feature              | Description                                    |
-| --- | -------------------- | ---------------------------------------------- |
-| 6.1 | **Notifications**    | List (by user, paginated); mark read.          |
-| 6.2 | **Rewards / points** | HabitProfile.points; list RewardEvent history. |
-| 6.3 | **Achievements**     | List achievement definitions; user progress.   |
+| #   | Feature                  | Description                                                                  |
+| --- | ------------------------ | ---------------------------------------------------------------------------- |
+| 6.1 | **Notifications**        | List (by user, paginated); mark read.                                        |
+| 6.2 | **Rewards / points**     | HabitProfile.points; list RewardEvent history.                               |
+| 6.3 | **Achievements**         | List achievement definitions; user progress.                                 |
+| 6.4 | **Image upload service** | Service to allow image uploads - remote data source to be cloudinary for now |
 
 ---
 
 ## Phase 7: Polish & production
 
+- Swagger
+- Mixpanel or some other tracking
+- crashalytics
+- analytics
 - Flutter client – API base URL, Better Auth client.
 - Validation – DTOs with class-validator.
-- Tests – e2e/unit.
 - Deploy – env, migrations, Redis.
 
 ---

@@ -61,11 +61,25 @@ export class ChallengeEntity {
   description!: string | null;
   status!: ChallengeStatus;
   imageUrl!: string | null;
+  taskTemplate!: unknown;
   startDate!: Date;
   endDate!: Date | null;
+  autoCreateTaskOnJoin!: boolean;
+  onTrackStreakThreshold!: number;
   memberCount?: number;
 
   constructor(partial: Partial<ChallengeEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class ChallengeMemberEntity {
+  challengeId!: string;
+  userId!: string;
+  currentStreak!: number;
+  joinedAt!: Date;
+
+  constructor(partial: Partial<ChallengeMemberEntity>) {
     Object.assign(this, partial);
   }
 }
