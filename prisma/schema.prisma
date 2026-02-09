@@ -1,0 +1,409 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+enum TaskType {
+  HABIT
+  ROUTINE
+  TODO
+  MINDSET
+}
+
+enum HabitDirection {
+  POSITIVE // Increase/Maintain
+  NEGATIVE // Decrease/Quit
+}
+
+enum TaskPriority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  LIFETIME
+}
+
+// --- MODELS ---
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  name             String?
+  emailVerified    Boolean
+  image            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  username         String?   @unique
+  subscriptionTier SubscriptionTier @default(FREE)
+  lastActive       DateTime?
+  deletedAt        DateTime?
+
+  sessions         Session[]
+  accounts         Account[]
+  
+  settings         UserSetting[]
+  blockedBy        UserBlock[]      @relation("blockedByUser")
+  blockedUsers     UserBlock[]      @relation("blockingUser")
+  followers        Follow[]         @relation("following")
+  following        Follow[]         @relation("follower")
+  dailyStats       DailyStats[]
+  tasks            Task[]
+  posts            Post[]
+  challenges       ChallengeMember[]
+  comments         Comment[]
+  likes            Like[]
+
+  @@index([username])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+model UserSetting {
+  id        String @id @default(uuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+
+  @@unique([userId, key])
+  @@map("user_setting")
+}
+
+model UserBlock {
+  id             String @id @default(uuid())
+  userId         String
+  blockedUserId  String
+  user           User   @relation("blockingUser", fields: [userId], references: [id])
+  blockedUser    User   @relation("blockedByUser", fields: [blockedUserId], references: [id])
+
+  @@unique([userId, blockedUserId])
+  @@map("user_block")
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  follower    User   @relation("follower", fields: [followerId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+model DailyStats {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  recordDate     DateTime @db.Date
+  totalCompleted Int      @default(0)
+  activeStreak   Int      @default(0)
+
+  @@unique([userId, recordDate])
+  @@map("daily_stats")
+}
+
+// --- TASK MODULE ---
+
+model Task {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id])
+  
+  type         TaskType // Sada je Enum
+  
+  title        String
+  iconName     String?
+  colorValue   Int?
+  imageUrl     String?
+  
+  isPublic     Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  isPredefined Boolean  @default(false)
+  forkCount    Int      @default(0)
+  isForked     Boolean  @default(false)
+  originalTaskId String?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+  startDate    DateTime @default(now())
+  endDate      DateTime?
+  
+  frequencyId  String?
+  frequency    TaskFrequency? @relation(fields: [frequencyId], references: [id])
+  notes        String[]
+
+  // Detalji u posebnim tabelama (1:1)
+  habitDetails     HabitDetails?
+  routineDetails   RoutineDetails?
+  todoDetails      TodoDetails?
+  mindsetDetails   MindsetDetails?
+  
+  reminders        TaskReminder[]
+  completions      TaskCompletion[]
+  pomodoroSettings PomodoroSettings?
+
+  @@index([userId, isDeleted, createdAt(sort: Desc)])
+  @@map("task")
+}
+
+model Category {
+  id           String  @id @default(uuid())
+  name         String
+  iconName     String?
+  colorValue   Int?
+  tasks        Task[]
+
+  @@map("category")
+}
+
+model TaskFrequency {
+  id             String        @id @default(uuid())
+  type           String
+  daysOfWeek     Int[]         
+  dayOfMonth     Int?
+  interval       Int           @default(1)
+  timesPerPeriod Int?
+  endDate        DateTime?
+  tasks          Task[]
+
+  @@map("task_frequency")
+}
+
+model HabitDetails {
+  taskId       String         @id
+  task         Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  goalValue    Float
+  currentValue Float          @default(0)
+  unitId       String?
+  unit         TaskUnit?      @relation(fields: [unitId], references: [id])
+  direction    HabitDirection @default(POSITIVE)
+
+  @@map("habit_details")
+}
+
+model TaskUnit {
+  id     String @id @default(uuid())
+  name   String
+  symbol String
+  habits HabitDetails[]
+
+  @@map("task_unit")
+}
+
+model RoutineDetails {
+  taskId    String   @id
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  steps     String[]
+  startTime String?
+  endTime   String?
+
+  @@map("routine_details")
+}
+
+model TodoDetails {
+  taskId   String        @id
+  task     Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  dueTime  DateTime?
+  priority TaskPriority  @default(NONE)
+  url      String?
+  isFlagged Boolean      @default(false)
+  subtasks TodoSubtask[]
+
+  @@map("todo_details")
+}
+
+model MindsetDetails {
+  taskId          String  @id
+  task            Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  affirmation     String? @db.Text
+  durationMinutes Int?
+
+  @@map("mindset_details")
+}
+
+model TodoSubtask {
+  id            String      @id @default(uuid())
+  todoDetailsId String
+  todoDetails   TodoDetails @relation(fields: [todoDetailsId], references: [taskId], onDelete: Cascade)
+  title         String
+  isCompleted   Boolean     @default(false)
+
+  @@map("todo_subtask")
+}
+
+model TaskReminder {
+  id           String   @id @default(uuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  type         String   // TIME, LOCATION
+  time         String?
+  locationName String?
+  latitude     Float?
+  longitude    Float?
+  message      String?
+  isEnabled    Boolean  @default(true)
+
+  @@map("task_reminder")
+}
+
+model TaskCompletion {
+  id            String   @id @default(uuid())
+  taskId        String
+  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedAt   DateTime @default(now())
+  value         Float?   // Za habije (npr. popio 0.5L vode)
+  status        String?  // Za rutine (npr. "PARTIAL", "COMPLETED")
+  notes         String?
+
+  @@map("task_completion")
+}
+
+model PomodoroSettings {
+  taskId            String   @id
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  focusDuration     Int      @default(25)
+  breakDuration     Int      @default(5)
+  longBreakDuration Int      @default(15)
+  totalSessions     Int      @default(4)
+  isEnabled         Boolean  @default(false)
+  autoStartBreaks   Boolean  @default(false)
+  autoStartFocus    Boolean  @default(false)
+
+  @@map("pomodoro_settings")
+}
+
+// --- COMMUNITY MODULE ---
+
+model Post {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  content   String?   @db.Text
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  comments  Comment[]
+  likes     Like[]
+
+  @@map("post")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("comment")
+}
+
+model Like {
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@map("like")
+}
+
+model Challenge {
+  id          String            @id @default(uuid())
+  groupId     String
+  group       Group             @relation(fields: [groupId], references: [id])
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  members     ChallengeMember[]
+
+  @@index([groupId])
+  @@map("challenge")
+}
+
+model Group {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  challenges  Challenge[]
+
+  @@map("group")
+}
+
+model ChallengeMember {
+  challengeId   String
+  challenge     Challenge @relation(fields: [challengeId], references: [id])
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  currentStreak Int       @default(0)
+  joinedAt      DateTime  @default(now())
+
+  @@id([challengeId, userId])
+  @@map("challenge_member")
+}
