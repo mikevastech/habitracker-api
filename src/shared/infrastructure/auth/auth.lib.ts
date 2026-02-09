@@ -8,6 +8,7 @@ import { passkey } from '@better-auth/passkey';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
+import { decodeProtectedHeader, importJWK, jwtVerify } from 'jose';
 import * as sendgridMail from '@sendgrid/mail';
 
 const sgMail =
@@ -38,6 +39,25 @@ const baseURL = process.env.BETTER_AUTH_URL || process.env.API_URL || defaultBas
 
 if (isDev) {
   console.log('[Better Auth] baseURL:', baseURL);
+}
+
+// Google: allow multiple client IDs (e.g. Web + Android/iOS) so ID token "aud" matches one of them.
+const googleClientIds = process.env.GOOGLE_CLIENT_IDS
+  ? process.env.GOOGLE_CLIENT_IDS.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  : process.env.GOOGLE_CLIENT_ID
+    ? [process.env.GOOGLE_CLIENT_ID]
+    : [];
+
+async function getGooglePublicKey(kid: string) {
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/certs');
+  const data = (await res.json()) as {
+    keys?: Array<{ kid?: string; alg?: string; [k: string]: unknown }>;
+  };
+  const jwk = data?.keys?.find((k) => k.kid === kid);
+  if (!jwk) throw new Error(`Google JWK with kid ${kid} not found`);
+  return importJWK(jwk, jwk.alg ?? 'RS256');
 }
 
 const authOptions = {
@@ -87,8 +107,25 @@ const authOptions = {
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientId: process.env.GOOGLE_CLIENT_ID || googleClientIds[0] || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      // Accept ID tokens whose "aud" is any of GOOGLE_CLIENT_ID or GOOGLE_CLIENT_IDS (Web + mobile).
+      verifyIdToken:
+        googleClientIds.length > 0
+          ? async (token: string, nonce: string | undefined) => {
+              const { kid, alg } = decodeProtectedHeader(token);
+              if (!kid || !alg) return false;
+              const key = await getGooglePublicKey(kid);
+              const { payload } = await jwtVerify(token, key, {
+                algorithms: [alg],
+                issuer: ['https://accounts.google.com', 'accounts.google.com'],
+                audience: googleClientIds,
+                maxTokenAge: '1h',
+              });
+              if (nonce && payload.nonce !== nonce) return false;
+              return true;
+            }
+          : undefined,
     },
   },
   plugins: [
