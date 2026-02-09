@@ -18,6 +18,8 @@ const suggestions_queue_module_1 = require("./modules/profile/infrastructure/que
 const task_module_1 = require("./modules/task/task.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const community_module_1 = require("./modules/community/community.module");
+const notification_module_1 = require("./modules/notification/notification.module");
+const gamification_module_1 = require("./modules/gamification/gamification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -49,6 +51,8 @@ exports.AppModule = AppModule = __decorate([
             profile_module_1.ProfileModule,
             suggestions_queue_module_1.SuggestionsQueueModule,
             community_module_1.CommunityModule,
+            notification_module_1.NotificationModule,
+            gamification_module_1.GamificationModule,
         ],
         providers: [
             {

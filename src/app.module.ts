@@ -9,11 +9,13 @@ import { SuggestionsQueueModule } from './modules/profile/infrastructure/queue/s
 import { TaskModule } from './modules/task/task.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CommunityModule } from './modules/community/community.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- @nestjs/throttler types not resolved by ESLint
+
     ThrottlerModule.forRoot([
       {
         name: 'short',
@@ -38,6 +40,8 @@ import { CommunityModule } from './modules/community/community.module';
     ProfileModule,
     SuggestionsQueueModule,
     CommunityModule,
+    NotificationModule,
+    GamificationModule,
   ],
   providers: [
     {
