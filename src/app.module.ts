@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CommunityModule } from './modules/community/community.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
     CommunityModule,
     NotificationModule,
     GamificationModule,
+    UploadModule,
   ],
   providers: [
     {

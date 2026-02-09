@@ -78,7 +78,7 @@ Schema: Challenge, ChallengeMember, Task.challengeId, RewardEvent.
 | 6.1 | **Notifications**        | ✅     | GET `/notifications` list (paginated, ?unreadOnly); PATCH `/:id/read`, PATCH `/read-all`. Repository, remote + Redis cache, invalidate on mark read. |
 | 6.2 | **Rewards / points**     | ✅     | HabitProfile.points via GET `/profile/me`; GET `/gamification/rewards` – list RewardEvent history (paginated). |
 | 6.3 | **Achievements**         | ✅     | GET `/gamification/achievements` – list definitions (cached 7d); GET `/gamification/achievements/progress` – user progress (count, lastEarnedAt per achievement). |
-| 6.4 | **Image upload service** | TODO   | Service for image uploads – remote data source Cloudinary.                  |
+| 6.4 | **Image upload service** | ✅     | POST `/upload/image` (form field `file`; optional `folder`, `publicIdPrefix`). IImageUploadDataSource + Cloudinary impl; max 5MB; jpeg/png/gif/webp. Env: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. |
 
 ---
 

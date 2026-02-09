@@ -20,6 +20,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const community_module_1 = require("./modules/community/community.module");
 const notification_module_1 = require("./modules/notification/notification.module");
 const gamification_module_1 = require("./modules/gamification/gamification.module");
+const upload_module_1 = require("./modules/upload/upload.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -53,6 +54,7 @@ exports.AppModule = AppModule = __decorate([
             community_module_1.CommunityModule,
             notification_module_1.NotificationModule,
             gamification_module_1.GamificationModule,
+            upload_module_1.UploadModule,
         ],
         providers: [
             {
