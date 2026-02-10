@@ -39,4 +39,4 @@ auth.db
 *.db-journal
 
 # Prisma
-/prisma/migrations
+
