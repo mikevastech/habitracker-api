@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -24,6 +24,12 @@ import { UpdateTaskDto } from '../application/dtos/update-task.dto';
 import { LogCompletionDto } from '../application/dtos/log-completion.dto';
 import { ListCompletionsUseCase } from '../application/list-completions.use-case';
 import type { TaskType } from '../domain/entities/task.entity';
+import {
+  TaskResponseDto,
+  TaskCompletionResponseDto,
+  PaginatedTasksResponseDto,
+  PaginatedCompletionsResponseDto,
+} from '../application/dtos/task-response.dto';
 
 @ApiTags('tasks')
 @Controller('tasks')
@@ -40,6 +46,7 @@ export class TaskController {
   ) {}
 
   @Post()
+  @ApiCreatedResponse({ type: TaskResponseDto })
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: Omit<CreateTaskDto, 'userId'>,
@@ -49,6 +56,7 @@ export class TaskController {
   }
 
   @Get()
+  @ApiOkResponse({ type: PaginatedTasksResponseDto })
   async list(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -68,6 +76,7 @@ export class TaskController {
   }
 
   @Post(':id/completions')
+  @ApiCreatedResponse({ type: TaskCompletionResponseDto })
   async logCompletion(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') taskId: string,
@@ -77,6 +86,7 @@ export class TaskController {
   }
 
   @Get(':id/completions')
+  @ApiOkResponse({ type: PaginatedCompletionsResponseDto })
   async listCompletions(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') taskId: string,
@@ -93,11 +103,13 @@ export class TaskController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: TaskResponseDto })
   async getOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.getTaskUseCase.execute({ taskId: id, userId: user.id });
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: TaskResponseDto })
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
@@ -107,6 +119,7 @@ export class TaskController {
   }
 
   @Delete(':id')
+  @ApiNoContentResponse()
   async delete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     await this.deleteTaskUseCase.execute({ taskId: id, userId: user.id });
   }

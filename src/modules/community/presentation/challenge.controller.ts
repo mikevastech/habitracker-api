@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -12,6 +12,13 @@ import { LeaveChallengeUseCase } from '../application/leave-challenge.use-case';
 import { ListChallengeMembersUseCase } from '../application/list-challenge-members.use-case';
 import { GetChallengeProgressUseCase } from '../application/get-challenge-progress.use-case';
 import { CompleteChallengeUseCase } from '../application/complete-challenge.use-case';
+import {
+  ChallengeResponseDto,
+  ChallengeMemberResponseDto,
+  PaginatedChallengesResponseDto,
+  PaginatedChallengeMembersResponseDto,
+  ChallengeProgressResponseDto,
+} from '../application/dtos/community-response.dto';
 
 @ApiTags('challenges')
 @Controller('challenges')
@@ -29,6 +36,7 @@ export class ChallengeController {
 
   @Post()
   @UseGuards(SessionGuard)
+  @ApiCreatedResponse({ type: ChallengeResponseDto })
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: Omit<CreateChallengeDto, 'userId'>,
@@ -40,6 +48,7 @@ export class ChallengeController {
   }
 
   @Get()
+  @ApiOkResponse({ type: PaginatedChallengesResponseDto })
   async list(
     @Query('groupId') groupId?: string,
     @Query('userId') userId?: string,
@@ -59,23 +68,27 @@ export class ChallengeController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: ChallengeResponseDto })
   async getById(@Param('id') id: string) {
     return this.getChallengeUseCase.execute({ challengeId: id });
   }
 
   @Post(':id/join')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: ChallengeMemberResponseDto })
   async join(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.joinChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Delete(':id/members/me')
   @UseGuards(SessionGuard)
+  @ApiNoContentResponse()
   async leave(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     await this.leaveChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Get(':id/members')
+  @ApiOkResponse({ type: PaginatedChallengeMembersResponseDto })
   async listMembers(
     @Param('id') id: string,
     @Query('limit') limitStr?: string,
@@ -87,12 +100,14 @@ export class ChallengeController {
 
   @Get(':id/progress')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: ChallengeProgressResponseDto })
   async getMyProgress(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.getChallengeProgressUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Post(':id/complete')
   @UseGuards(SessionGuard)
+  @ApiNoContentResponse()
   async complete(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     await this.completeChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }

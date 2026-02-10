@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -14,6 +14,12 @@ import { LikePostUseCase } from '../application/like-post.use-case';
 import { AddCommentUseCase } from '../application/add-comment.use-case';
 import { ListCommentsUseCase } from '../application/list-comments.use-case';
 import { PostVisibility } from '../domain/entities/community.entity';
+import {
+  PostResponseDto,
+  CommentResponseDto,
+  PaginatedPostsResponseDto,
+  PaginatedCommentsResponseDto,
+} from '../application/dtos/community-response.dto';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -31,6 +37,7 @@ export class PostController {
 
   @Get('feed')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PaginatedPostsResponseDto })
   async feed(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -42,18 +49,21 @@ export class PostController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: PostResponseDto })
   async getById(@Param('id') id: string, @CurrentUser() user?: AuthenticatedUser) {
     return this.getPostUseCase.execute({ postId: id, callerUserId: user?.id });
   }
 
   @Delete(':id')
   @UseGuards(SessionGuard)
+  @ApiNoContentResponse()
   async delete(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     await this.deletePostUseCase.execute({ postId: id, userId: user.id });
   }
 
   @Post()
   @UseGuards(SessionGuard)
+  @ApiCreatedResponse({ type: PostResponseDto })
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: Omit<CreatePostDto, 'userId'>,
@@ -65,6 +75,7 @@ export class PostController {
   }
 
   @Get()
+  @ApiOkResponse({ type: PaginatedPostsResponseDto })
   async list(
     @Query('userId') userId?: string,
     @Query('groupId') groupId?: string,
@@ -84,18 +95,21 @@ export class PostController {
 
   @Post(':id/like')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PostResponseDto })
   async like(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.likePostUseCase.execute({ postId: id, userId: user.id, action: 'LIKE' });
   }
 
   @Delete(':id/like')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PostResponseDto })
   async unlike(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.likePostUseCase.execute({ postId: id, userId: user.id, action: 'UNLIKE' });
   }
 
   @Post(':id/comments')
   @UseGuards(SessionGuard)
+  @ApiCreatedResponse({ type: CommentResponseDto })
   async addComment(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -109,6 +123,7 @@ export class PostController {
   }
 
   @Get(':id/comments')
+  @ApiOkResponse({ type: PaginatedCommentsResponseDto })
   async listComments(
     @Param('id') id: string,
     @Query('limit') limitStr?: string,

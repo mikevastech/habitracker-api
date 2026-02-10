@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
@@ -26,6 +26,11 @@ import {
 } from '../domain/entities/task.entity';
 import type { CategoryEntity } from '../domain/entities/reference.entity';
 import type { TaskTemplateItem } from '../domain/repositories/reference.repository.interface';
+import {
+  CategoryResponseDto,
+  UnitResponseDto,
+} from '../application/dtos/reference-response.dto';
+import { TaskResponseDto } from '../application/dtos/task-response.dto';
 
 @ApiTags('reference')
 @Controller('reference')
@@ -40,18 +45,21 @@ export class ReferenceController {
 
   @Get('categories')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: [CategoryResponseDto] })
   async getCategories(@CurrentUser() user: AuthenticatedUser) {
     return this.getCategoriesUseCase.execute({ userId: user.id });
   }
 
   @Get('units')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: [UnitResponseDto] })
   async getUnits(@CurrentUser() user: AuthenticatedUser) {
     return this.getUnitsUseCase.execute({ userId: user.id });
   }
 
   @Post('categories')
   @UseGuards(SessionGuard)
+  @ApiCreatedResponse({ type: CategoryResponseDto })
   async createCategory(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateCategoryDto,
@@ -71,6 +79,7 @@ export class ReferenceController {
 
   @Post('units')
   @UseGuards(SessionGuard)
+  @ApiCreatedResponse({ type: UnitResponseDto })
   async createUnit(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateUnitDto) {
     const params: CreateUnitParams = {
       userId: user.id,
@@ -87,6 +96,7 @@ export class ReferenceController {
 
   @Get('task-templates')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: [TaskResponseDto] })
   async getTaskTemplates() {
     const items = await this.getTaskTemplatesUseCase.execute(new NoParams());
     return items.map((item) => this.toTaskTemplateResponse(item));

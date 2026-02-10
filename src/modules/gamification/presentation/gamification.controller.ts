@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -7,6 +7,11 @@ import { NoParams } from '../../../shared/domain/ports/use-case.port';
 import { ListRewardEventsUseCase } from '../application/list-reward-events.use-case';
 import { ListAchievementDefinitionsUseCase } from '../application/list-achievement-definitions.use-case';
 import { GetUserAchievementProgressUseCase } from '../application/get-user-achievement-progress.use-case';
+import {
+  PaginatedRewardEventsResponseDto,
+  AchievementDefinitionResponseDto,
+  UserAchievementProgressResponseDto,
+} from '../application/dtos/gamification-response.dto';
 
 @ApiTags('gamification')
 @Controller('gamification')
@@ -20,6 +25,7 @@ export class GamificationController {
   /** Reward event history for current user. Points balance is on GET /profile/me. */
   @Get('rewards')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PaginatedRewardEventsResponseDto })
   async listMyRewardEvents(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -31,6 +37,7 @@ export class GamificationController {
 
   /** All achievement definitions (public, cached). */
   @Get('achievements')
+  @ApiOkResponse({ type: [AchievementDefinitionResponseDto] })
   async listAchievementDefinitions() {
     return this.listAchievementDefinitionsUseCase.execute(new NoParams());
   }
@@ -38,6 +45,7 @@ export class GamificationController {
   /** Current user's progress per achievement (count earned, last earned). */
   @Get('achievements/progress')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: [UserAchievementProgressResponseDto] })
   async getMyAchievementProgress(@CurrentUser() user: AuthenticatedUser) {
     return this.getUserAchievementProgressUseCase.execute({ userId: user.id });
   }

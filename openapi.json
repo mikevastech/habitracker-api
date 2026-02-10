@@ -7,7 +7,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Hello message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -21,7 +28,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
           }
         },
         "summary": "Health check for Cloud Run / UptimeRobot",
@@ -133,7 +147,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -178,7 +199,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTasksResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -211,7 +239,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCompletionResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -248,7 +283,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCompletionsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -271,7 +313,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -302,7 +351,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -322,7 +378,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -337,7 +393,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -359,7 +425,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -373,7 +446,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UnitResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -395,7 +478,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -409,7 +499,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -432,7 +532,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckUsernameResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -446,7 +553,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMeResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -468,7 +582,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitProfileResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -482,7 +603,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileSettingsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -504,7 +632,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileSettingsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -535,7 +670,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProfilesResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -566,7 +708,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProfilesResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -588,8 +737,15 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitProfileResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -609,7 +765,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -624,7 +780,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -655,7 +818,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedPostsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -678,7 +848,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -698,7 +875,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -713,7 +890,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -766,7 +950,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedPostsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -788,8 +979,15 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -810,7 +1008,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -843,7 +1048,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -880,7 +1092,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCommentsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -894,7 +1113,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -939,7 +1165,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedGroupsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -962,7 +1195,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -984,8 +1224,15 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupMemberResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1007,7 +1254,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -1047,7 +1294,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedGroupMembersResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1061,7 +1315,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1114,7 +1375,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedChallengesResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1137,7 +1405,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1159,8 +1434,15 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeMemberResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1182,7 +1464,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -1222,7 +1504,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedChallengeMembersResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1245,7 +1534,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeProgressResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1267,7 +1563,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "204": {
             "description": ""
           }
         },
@@ -1307,7 +1603,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedNotificationsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1329,7 +1632,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -1343,7 +1646,7 @@
         "operationId": "NotificationController_markAllRead",
         "parameters": [],
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -1375,7 +1678,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedRewardEventsResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1389,7 +1699,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementDefinitionResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1403,7 +1723,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserAchievementProgressResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1418,7 +1748,7 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/UploadImageBodyDto"
               }
@@ -1427,7 +1757,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadImageResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1490,6 +1827,329 @@
       }
     },
     "schemas": {
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "TaskReminderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "isEnabled"
+        ]
+      },
+      "TaskFrequencyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "daysOfWeek": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "dayOfMonth": {
+            "type": "object"
+          },
+          "interval": {
+            "type": "number"
+          },
+          "timesPerPeriod": {
+            "type": "object"
+          },
+          "endDate": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "daysOfWeek",
+          "interval"
+        ]
+      },
+      "PomodoroSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "focusDuration": {
+            "type": "number"
+          },
+          "breakDuration": {
+            "type": "number"
+          },
+          "longBreakDuration": {
+            "type": "number"
+          },
+          "totalSessions": {
+            "type": "number"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "autoStartBreaks": {
+            "type": "boolean"
+          },
+          "autoStartFocus": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "taskId",
+          "focusDuration",
+          "breakDuration",
+          "longBreakDuration",
+          "totalSessions",
+          "isEnabled",
+          "autoStartBreaks",
+          "autoStartFocus"
+        ]
+      },
+      "TodoSubtaskResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "isCompleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "isCompleted"
+        ]
+      },
+      "TaskResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "object"
+          },
+          "challengeId": {
+            "type": "object"
+          },
+          "frequencyId": {
+            "type": "object"
+          },
+          "title": {
+            "type": "string"
+          },
+          "taskType": {
+            "type": "string",
+            "enum": [
+              "HABIT",
+              "ROUTINE",
+              "TODO",
+              "MINDSET"
+            ]
+          },
+          "iconName": {
+            "type": "object"
+          },
+          "colorValue": {
+            "type": "object"
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "isPredefined": {
+            "type": "boolean"
+          },
+          "forkCount": {
+            "type": "number"
+          },
+          "isForked": {
+            "type": "boolean"
+          },
+          "originalTaskId": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "object"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskReminderResponseDto"
+            }
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/TaskFrequencyResponseDto"
+          },
+          "pomodoroSettings": {
+            "$ref": "#/components/schemas/PomodoroSettingsResponseDto"
+          },
+          "goalValue": {
+            "type": "number"
+          },
+          "currentValue": {
+            "type": "number"
+          },
+          "unitId": {
+            "type": "object"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "POSITIVE",
+              "NEGATIVE"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startTime": {
+            "type": "object"
+          },
+          "dueTime": {
+            "type": "object"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "isFlagged": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "object"
+          },
+          "subtasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TodoSubtaskResponseDto"
+            }
+          },
+          "affirmation": {
+            "type": "object"
+          },
+          "durationMinutes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "title",
+          "taskType",
+          "isPublic",
+          "isDeleted",
+          "isPredefined",
+          "forkCount",
+          "isForked",
+          "createdAt",
+          "updatedAt",
+          "startDate",
+          "notes",
+          "reminders"
+        ]
+      },
+      "PaginatedTasksResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "LogCompletionDto": {
         "type": "object",
         "properties": {
@@ -1507,6 +2167,56 @@
             "type": "string"
           }
         }
+      },
+      "TaskCompletionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "value": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          },
+          "description": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "taskId",
+          "completedAt",
+          "status"
+        ]
+      },
+      "PaginatedCompletionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskCompletionResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
       },
       "UpdateTaskDto": {
         "type": "object",
@@ -1601,6 +2311,57 @@
           }
         }
       },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "iconName": {
+            "type": "object"
+          },
+          "colorValue": {
+            "type": "object"
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "isPredefined": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isPredefined"
+        ]
+      },
+      "UnitResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "isPredefined": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "symbol",
+          "isPredefined"
+        ]
+      },
       "CreateCategoryDto": {
         "type": "object",
         "properties": {
@@ -1639,6 +2400,76 @@
           "symbol"
         ]
       },
+      "CheckUsernameResponseDto": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "available"
+        ]
+      },
+      "HabitProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "subscriptionTier": {
+            "type": "string",
+            "enum": [
+              "FREE",
+              "PRO",
+              "LIFETIME"
+            ]
+          },
+          "bio": {
+            "type": "object"
+          },
+          "points": {
+            "type": "number"
+          },
+          "isTaggingAllowed": {
+            "type": "boolean"
+          },
+          "avatarUrl": {
+            "type": "object"
+          },
+          "followerCount": {
+            "type": "number"
+          },
+          "followingCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "subscriptionTier",
+          "points",
+          "isTaggingAllowed"
+        ]
+      },
+      "GetMeResponseDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/HabitProfileResponseDto"
+          }
+        },
+        "required": [
+          "user",
+          "profile"
+        ]
+      },
       "UpdateProfileDto": {
         "type": "object",
         "properties": {
@@ -1658,6 +2489,72 @@
             "type": "object"
           }
         }
+      },
+      "ProfileSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "isSearchable": {
+            "type": "boolean"
+          },
+          "analyticsEnabled": {
+            "type": "boolean"
+          },
+          "profileVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "challengeVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "challengePostVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "taskDailyReminderTime": {
+            "type": "object"
+          },
+          "taskWeekStartDay": {
+            "type": "number"
+          },
+          "taskArchiveVisible": {
+            "type": "boolean"
+          },
+          "pomodoroFocusDuration": {
+            "type": "number"
+          },
+          "pomodoroBreakDuration": {
+            "type": "number"
+          },
+          "pomodoroLongBreakDuration": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "userId",
+          "isSearchable",
+          "analyticsEnabled",
+          "profileVisibility",
+          "challengeVisibility",
+          "challengePostVisibility",
+          "taskWeekStartDay",
+          "taskArchiveVisible",
+          "pomodoroFocusDuration",
+          "pomodoroBreakDuration",
+          "pomodoroLongBreakDuration"
+        ]
       },
       "UpdateProfileSettingsDto": {
         "type": "object",
@@ -1714,6 +2611,139 @@
           }
         }
       },
+      "PaginatedProfilesResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HabitProfileResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "SuggestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HabitProfileResponseDto"
+            }
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
+      },
+      "PostResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "object"
+          },
+          "challengeId": {
+            "type": "object"
+          },
+          "content": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "ACHIEVEMENT",
+              "CHALLENGE_CREATED",
+              "CHALLENGE_ON_TRACK",
+              "CHALLENGE_COMPLETED",
+              "IMAGE"
+            ]
+          },
+          "mediaUrl": {
+            "type": "object"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "isAutoGenerated": {
+            "type": "boolean"
+          },
+          "challengeTitle": {
+            "type": "object"
+          },
+          "taggedUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commentCount": {
+            "type": "number"
+          },
+          "likeCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "type",
+          "visibility",
+          "isAutoGenerated",
+          "taggedUserIds",
+          "hashtags",
+          "commentCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedPostsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "AddCommentDto": {
         "type": "object",
         "properties": {
@@ -1725,6 +2755,466 @@
         },
         "required": [
           "content"
+        ]
+      },
+      "CommentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "postId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "userId",
+          "content",
+          "createdAt"
+        ]
+      },
+      "PaginatedCommentsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "GroupResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "coverImageUrl": {
+            "type": "object"
+          },
+          "profileImageUrl": {
+            "type": "object"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "allowMemberInvites": {
+            "type": "boolean"
+          },
+          "memberCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isPublic",
+          "allowMemberInvites",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedGroupsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "GroupMemberResponseDto": {
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "joinedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "groupId",
+          "userId",
+          "role",
+          "joinedAt"
+        ]
+      },
+      "PaginatedGroupMembersResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupMemberResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ChallengeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "taskTemplate": {
+            "type": "object"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "type": "object"
+          },
+          "autoCreateTaskOnJoin": {
+            "type": "boolean"
+          },
+          "onTrackStreakThreshold": {
+            "type": "number"
+          },
+          "memberCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "groupId",
+          "creatorId",
+          "title",
+          "status",
+          "taskTemplate",
+          "startDate",
+          "autoCreateTaskOnJoin",
+          "onTrackStreakThreshold"
+        ]
+      },
+      "PaginatedChallengesResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChallengeResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ChallengeMemberResponseDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "currentStreak": {
+            "type": "number"
+          },
+          "joinedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "challengeId",
+          "userId",
+          "currentStreak",
+          "joinedAt"
+        ]
+      },
+      "PaginatedChallengeMembersResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChallengeMemberResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ChallengeProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "currentStreak": {
+            "type": "number"
+          },
+          "onTrack": {
+            "type": "boolean"
+          },
+          "requiredStreak": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "currentStreak",
+          "onTrack",
+          "requiredStreak"
+        ]
+      },
+      "NotificationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "receiverId": {
+            "type": "string"
+          },
+          "senderId": {
+            "type": "string"
+          },
+          "notificationTypeId": {
+            "type": "string"
+          },
+          "senderName": {
+            "type": "string"
+          },
+          "senderAvatar": {
+            "type": "object"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "receiverId",
+          "senderId",
+          "notificationTypeId",
+          "senderName",
+          "title",
+          "body",
+          "data",
+          "isRead",
+          "createdAt"
+        ]
+      },
+      "PaginatedNotificationsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "RewardEventResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "achievementDefinitionId": {
+            "type": "string"
+          },
+          "pointsAwarded": {
+            "type": "number"
+          },
+          "sourceType": {
+            "type": "object"
+          },
+          "sourceId": {
+            "type": "object"
+          },
+          "title": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "achievementDefinitionId",
+          "pointsAwarded",
+          "createdAt"
+        ]
+      },
+      "PaginatedRewardEventsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RewardEventResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AchievementDefinitionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "pointsDefault": {
+            "type": "number"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "pointsDefault",
+          "isActive",
+          "sortOrder"
+        ]
+      },
+      "UserAchievementProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "achievementDefinitionId": {
+            "type": "string"
+          },
+          "countEarned": {
+            "type": "number"
+          },
+          "lastEarnedAt": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "achievementDefinitionId",
+          "countEarned"
         ]
       },
       "UploadImageBodyDto": {
@@ -1739,6 +3229,21 @@
             "description": "Prefix for public_id"
           }
         }
+      },
+      "UploadImageResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "publicId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "publicId"
+        ]
       }
     }
   }

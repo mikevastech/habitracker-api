@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import { GetProfileUseCase } from '../application/get-profile.use-case';
@@ -25,6 +25,14 @@ import { ListFollowingUseCase } from '../application/list-following.use-case';
 import { CheckUsernameUseCase } from '../application/check-username.use-case';
 import { GetSuggestedUsersUseCase } from '../application/get-suggested-users.use-case';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
+import {
+  ProfileSettingsResponseDto,
+  HabitProfileResponseDto,
+  PaginatedProfilesResponseDto,
+  CheckUsernameResponseDto,
+  GetMeResponseDto,
+  SuggestionsResponseDto,
+} from '../application/dtos/profile-response.dto';
 
 @ApiTags('profile')
 @Controller('profile')
@@ -43,6 +51,7 @@ export class ProfileController {
   ) {}
 
   @Get('check-username')
+  @ApiOkResponse({ type: CheckUsernameResponseDto })
   async checkUsername(@Query('username') username: string) {
     const isAvailable = await this.checkUsernameUseCase.execute({ username });
     return { available: isAvailable };
@@ -50,6 +59,7 @@ export class ProfileController {
 
   @Get('me')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: GetMeResponseDto })
   async getMe(@CurrentUser() user: AuthenticatedUser) {
     const profile = await this.getProfileUseCase.execute({ userId: user.id });
 
@@ -66,18 +76,21 @@ export class ProfileController {
 
   @Patch('me')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: HabitProfileResponseDto })
   async updateMe(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateProfileDto) {
     return this.updateProfileUseCase.execute({ userId: user.id, dto });
   }
 
   @Get('me/settings')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: ProfileSettingsResponseDto })
   async getMySettings(@CurrentUser() user: AuthenticatedUser) {
     return this.getProfileSettingsUseCase.execute({ userId: user.id });
   }
 
   @Patch('me/settings')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: ProfileSettingsResponseDto })
   async updateMySettings(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateProfileSettingsDto,
@@ -87,6 +100,7 @@ export class ProfileController {
 
   @Get('me/followers')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PaginatedProfilesResponseDto })
   async getMyFollowers(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -98,6 +112,7 @@ export class ProfileController {
 
   @Get('me/following')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: PaginatedProfilesResponseDto })
   async getMyFollowing(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -109,18 +124,21 @@ export class ProfileController {
 
   @Post('me/following/:userId')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: HabitProfileResponseDto })
   async follow(@CurrentUser() user: AuthenticatedUser, @Param('userId') targetUserId: string) {
     return this.followUserUseCase.execute({ followerId: user.id, followingId: targetUserId });
   }
 
   @Delete('me/following/:userId')
   @UseGuards(SessionGuard)
+  @ApiNoContentResponse()
   async unfollow(@CurrentUser() user: AuthenticatedUser, @Param('userId') targetUserId: string) {
     await this.unfollowUserUseCase.execute({ followerId: user.id, followingId: targetUserId });
   }
 
   @Get('me/suggestions')
   @UseGuards(SessionGuard)
+  @ApiOkResponse({ type: SuggestionsResponseDto })
   async getMySuggestions(@CurrentUser() user: AuthenticatedUser) {
     const profiles = await this.getSuggestedUsersUseCase.execute({ userId: user.id });
     return { suggestions: profiles };

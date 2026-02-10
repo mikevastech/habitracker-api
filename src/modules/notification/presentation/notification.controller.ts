@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
@@ -6,6 +6,7 @@ import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
 import { ListNotificationsUseCase } from '../application/list-notifications.use-case';
 import { MarkNotificationReadUseCase } from '../application/mark-notification-read.use-case';
 import { MarkAllNotificationsReadUseCase } from '../application/mark-all-notifications-read.use-case';
+import { PaginatedNotificationsResponseDto } from '../application/dtos/notification-response.dto';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -18,6 +19,7 @@ export class NotificationController {
   ) {}
 
   @Get()
+  @ApiOkResponse({ type: PaginatedNotificationsResponseDto })
   async list(
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limitStr?: string,
@@ -35,6 +37,7 @@ export class NotificationController {
   }
 
   @Patch(':id/read')
+  @ApiNoContentResponse()
   async markRead(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     await this.markNotificationReadUseCase.execute({
       notificationId: id,
@@ -43,6 +46,7 @@ export class NotificationController {
   }
 
   @Patch('read-all')
+  @ApiNoContentResponse()
   async markAllRead(@CurrentUser() user: AuthenticatedUser) {
     await this.markAllNotificationsReadUseCase.execute({ receiverId: user.id });
   }
