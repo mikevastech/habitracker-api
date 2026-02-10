@@ -107,3 +107,39 @@ When the app is running, OpenAPI docs are at:
 ## Optional: Mixpanel / analytics
 
 If `MIXPANEL_PROJECT_TOKEN` is set, the app can send server-side events. Leave unset to disable.
+
+
+Za "pravi" besplatan deployment (bez kreditne kartice ili uz minimalan setup), najbolja strategija je da koristiš kombinaciju specijalizovanih provajdera koji nude najbolje "Free Tier" pakete:
+
+1. 🐘 Baza podataka (PostgreSQL) – Supabase ili Neon
+Supabase je najbolji izbor. Dobiješ namensku bazu (do 500MB podataka besplatno zauvek).
+Setup: Registruj se, kreiraj projekat i u Settings > Database kopiraj Connection String u svoj DATABASE_URL.
+Alternativa: Neon.tech (Serverless Postgres).
+2. ⚡ Redis (Cache & Queues) – Upstash
+Pošto koristiš Redis za feed-ove, follow graph i BullMQ (queues), obični besplatni provajderi (kao Render) ne perzistiraju podatke.
+Upstash nudi Serverless Redis koji je besplatan do 10,000 zahteva dnevno. Njihov Redis pamti podatke na disk, tako da tvoji feed-ovi i queue podaci neće nestati.
+Setup: Kreiraj bazu na Upstash-u i dobićeš Host, Port i Password za svoj 
+.env
+.
+3. 🚀 App Server (NestJS) – Koyeb ili Render
+Koyeb (Preporuka): Nude "Nano" instancu koja je brža od Rendera i automatski detektuje tvoj 
+Dockerfile
+.
+Render: Popularan izbor, ali se aplikacija "uspava" nakon 15 minuta neaktivnosti. Prvi zahtev nakon buđenja traje 30-ak sekundi.
+Setup: Poveži svoj GitHub repo, Render/Koyeb će prepoznati 
+Dockerfile
+ i uraditi npm run build.
+4. 🖼️ Slike & Media – Cloudinary
+Već si implementirao UploadModule. Cloudinary free tier je više nego dovoljan za početak (dodaj samo API ključeve u env).
+Koraci za deployment:
+Prisma: Pre nego što "pustiš" aplikaciju, moraš izvršiti migracije na produkcionoj bazi:
+bash
+# U terminalu lokalno (sa produkcionim DATABASE_URL):
+npx prisma migrate deploy
+Environment Variables: Na hostingu (npr. Koyeb Dashboard) obavezno unesi sve varijable:
+DATABASE_URL (sa Supabase-a)
+REDIS_HOST, REDIS_PORT, REDIS_PASSWORD (sa Upstash-a)
+BETTER_AUTH_SECRET (nasumični string)
+BETTER_AUTH_URL (URL tvoje nove aplikacije, npr. https://my-habit-api.koyeb.app)
+PORT (postavi na 3000, hosting će to mapirati na javni port)
+Problem sa besplatnim hostingom-om: Pošto koristiš BullMQ (za suggestions i feed fan-out), ako se aplikacija "uspava" na Renderu/Koyebu, worker-i će prestati da rade. Čim se neko javi na API i probudi aplikaciju, BullMQ će nastaviti tamo gde je stao. Za demo verziju, ovo je savršeno prihvatljivo!

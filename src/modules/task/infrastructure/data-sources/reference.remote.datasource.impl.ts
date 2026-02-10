@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { AppPrismaService } from '../../../../shared/infrastructure/prisma/app-prisma.service';
 import { IReferenceRemoteDataSource } from './reference.remote.datasource.interface';
 import { CategoryEntity, TaskUnitEntity } from '../../domain/entities/reference.entity';
-import type { TaskTemplateItem } from '../../domain/repositories/reference.repository.interface';
+import type {
+  TaskTemplateItem,
+  CreateCategoryData,
+  CreateUnitData,
+} from '../../domain/repositories/reference.repository.interface';
 import {
   TaskEntity,
   TaskType,
@@ -63,6 +67,46 @@ export class ReferenceRemoteDataSourceImpl implements IReferenceRemoteDataSource
           isPredefined: r.isPredefined,
         }),
     );
+  }
+
+  async createCategory(userId: string, data: CreateCategoryData): Promise<CategoryEntity> {
+    const r = await this.prisma.category.create({
+      data: {
+        name: data.name,
+        iconName: data.iconName ?? undefined,
+        colorValue: data.colorValue ?? undefined,
+        imageUrl: data.imageUrl ?? undefined,
+        userId,
+        isPredefined: false,
+      },
+    });
+    return new CategoryEntity({
+      id: r.id,
+      name: r.name,
+      iconName: r.iconName,
+      colorValue: r.colorValue,
+      imageUrl: r.imageUrl,
+      userId: r.userId,
+      isPredefined: r.isPredefined,
+    });
+  }
+
+  async createUnit(userId: string, data: CreateUnitData): Promise<TaskUnitEntity> {
+    const r = await this.prisma.taskUnit.create({
+      data: {
+        name: data.name,
+        symbol: data.symbol,
+        userId,
+        isPredefined: false,
+      },
+    });
+    return new TaskUnitEntity({
+      id: r.id,
+      name: r.name,
+      symbol: r.symbol,
+      userId: r.userId,
+      isPredefined: r.isPredefined,
+    });
   }
 
   async findPredefinedTaskTemplates(): Promise<TaskTemplateItem[]> {

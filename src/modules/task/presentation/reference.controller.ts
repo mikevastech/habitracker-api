@@ -1,7 +1,13 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
+import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
 import { GetCategoriesUseCase } from '../application/get-categories.use-case';
 import { GetUnitsUseCase } from '../application/get-units.use-case';
+import { CreateCategoryUseCase } from '../application/create-category.use-case';
+import { CreateUnitUseCase } from '../application/create-unit.use-case';
 import { GetTaskTemplatesUseCase } from '../application/get-task-templates.use-case';
 import {
   TaskType,
@@ -13,11 +19,42 @@ import {
 import type { CategoryEntity } from '../domain/entities/reference.entity';
 import type { TaskTemplateItem } from '../domain/repositories/reference.repository.interface';
 
+export class CreateCategoryBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsOptional()
+  iconName?: string | null;
+
+  @IsNumber()
+  @IsOptional()
+  colorValue?: number | null;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string | null;
+}
+
+export class CreateUnitBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  symbol!: string;
+}
+
+@ApiTags('reference')
 @Controller('reference')
 export class ReferenceController {
   constructor(
     private readonly getCategoriesUseCase: GetCategoriesUseCase,
     private readonly getUnitsUseCase: GetUnitsUseCase,
+    private readonly createCategoryUseCase: CreateCategoryUseCase,
+    private readonly createUnitUseCase: CreateUnitUseCase,
     private readonly getTaskTemplatesUseCase: GetTaskTemplatesUseCase,
   ) {}
 
@@ -31,6 +68,36 @@ export class ReferenceController {
     return this.getUnitsUseCase.execute();
   }
 
+  @Post('categories')
+  @UseGuards(SessionGuard)
+  async createCategory(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: CreateCategoryBodyDto,
+  ) {
+    const category = await this.createCategoryUseCase.execute(user.id, {
+      name: body.name,
+      iconName: body.iconName ?? null,
+      colorValue: body.colorValue ?? null,
+      imageUrl: body.imageUrl ?? null,
+    });
+    return this.toCategoryDto(category);
+  }
+
+  @Post('units')
+  @UseGuards(SessionGuard)
+  async createUnit(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateUnitBodyDto) {
+    const unit = await this.createUnitUseCase.execute(user.id, {
+      name: body.name,
+      symbol: body.symbol,
+    });
+    return {
+      id: unit.id,
+      name: unit.name,
+      symbol: unit.symbol,
+      isPredefined: unit.isPredefined,
+    };
+  }
+
   @Get('task-templates')
   @UseGuards(SessionGuard)
   async getTaskTemplates() {
@@ -41,6 +108,8 @@ export class ReferenceController {
   /** Serializes TaskTemplateItem to API shape (task + nested details + category). */
   private toTaskTemplateResponse(item: TaskTemplateItem) {
     const { task, category } = item;
+    const reminderList = task.reminders ?? [];
+    const freq = task.frequency;
     const base = {
       id: task.id,
       userId: task.userId,
@@ -58,6 +127,22 @@ export class ReferenceController {
       startDate: task.startDate,
       endDate: task.endDate,
       category: category ? this.toCategoryDto(category) : null,
+      reminders: reminderList.map((r) => ({
+        type: r.type,
+        time: r.time,
+        message: r.message,
+        isEnabled: r.isEnabled,
+      })),
+      frequency: freq
+        ? {
+            type: freq.type,
+            daysOfWeek: freq.daysOfWeek,
+            dayOfMonth: freq.dayOfMonth,
+            interval: freq.interval,
+            timesPerPeriod: freq.timesPerPeriod,
+            endDate: freq.endDate,
+          }
+        : null,
     };
 
     switch (task.taskType) {
@@ -85,6 +170,7 @@ export class ReferenceController {
       }
       case TaskType.TODO: {
         const t = task as TodoEntity;
+        const subtaskList = t.subtasks ?? [];
         return {
           ...base,
           todoDetails: {
@@ -92,6 +178,10 @@ export class ReferenceController {
             priority: t.priority,
             isFlagged: t.isFlagged,
             url: t.url,
+            subtasks: subtaskList.map((s) => ({
+              title: s.title,
+              isCompleted: s.isCompleted,
+            })),
           },
         };
       }
@@ -109,6 +199,7 @@ export class ReferenceController {
         return base;
     }
   }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
   private toCategoryDto(c: CategoryEntity) {
     return {

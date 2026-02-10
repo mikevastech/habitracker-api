@@ -1,5 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { IReferenceRepository } from '../../domain/repositories/reference.repository.interface';
+import type {
+  IReferenceRepository,
+  CreateCategoryData,
+  CreateUnitData,
+} from '../../domain/repositories/reference.repository.interface';
 import { IReferenceLocalDataSource } from '../data-sources/reference.local.datasource.interface';
 import { IReferenceRemoteDataSource } from '../data-sources/reference.remote.datasource.interface';
 
@@ -34,5 +38,13 @@ export class ReferenceRepositoryImpl implements IReferenceRepository {
     const data = await this.remoteDataSource.findPredefinedTaskTemplates();
     await this.localDataSource.setCachedTaskTemplates(data);
     return data;
+  }
+
+  async createCategory(userId: string, data: CreateCategoryData) {
+    return this.remoteDataSource.createCategory(userId, data);
+  }
+
+  async createUnit(userId: string, data: CreateUnitData) {
+    return this.remoteDataSource.createUnit(userId, data);
   }
 }

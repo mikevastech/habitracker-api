@@ -1,3 +1,4 @@
+import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ITaskRepository } from '../domain/repositories/task.repository.interface';
 import {
@@ -7,28 +8,126 @@ import {
   RoutineEntity,
   TodoEntity,
   MindsetEntity,
+  TaskReminder,
+  TodoSubtask,
+  TaskFrequency,
+  PomodoroSettings,
 } from '../domain/entities/task.entity';
 
-export interface UpdateTaskDto {
+export class UpdateTaskDto {
+  @IsString()
+  @IsOptional()
   title?: string;
+
+  @IsString()
+  @IsOptional()
   categoryId?: string | null;
+
+  @IsString()
+  @IsOptional()
   iconName?: string | null;
+
+  @IsNumber()
+  @IsOptional()
   colorValue?: number | null;
+
+  @IsString()
+  @IsOptional()
   imageUrl?: string | null;
+
+  @IsBoolean()
+  @IsOptional()
   isPublic?: boolean;
+
+  @IsDate()
+  @IsOptional()
+  startDate?: Date;
+
+  @IsDate()
+  @IsOptional()
+  endDate?: Date | null;
+
+  @IsArray()
+  @IsOptional()
+  notes?: string[];
+
   // type-specific (optional)
+  @IsNumber()
+  @IsOptional()
   goalValue?: number;
+
+  @IsNumber()
+  @IsOptional()
   currentValue?: number;
+
+  @IsString()
+  @IsOptional()
   unitId?: string | null;
+
+  @IsString()
+  @IsOptional()
   direction?: string;
+
+  @IsArray()
+  @IsOptional()
   steps?: string[];
+
+  @IsString()
+  @IsOptional()
   startTime?: string | null;
+
+  @IsDate()
+  @IsOptional()
   dueTime?: Date | null;
+
+  @IsString()
+  @IsOptional()
   priority?: string;
+
+  @IsBoolean()
+  @IsOptional()
   isFlagged?: boolean;
+
+  @IsString()
+  @IsOptional()
   url?: string | null;
+
+  @IsString()
+  @IsOptional()
   affirmation?: string | null;
+
+  @IsNumber()
+  @IsOptional()
   durationMinutes?: number | null;
+
+  @IsArray()
+  @IsOptional()
+  reminders?: any[];
+
+  @IsArray()
+  @IsOptional()
+  subtasks?: any[];
+
+  @IsOptional()
+  frequency?: {
+    type: string;
+    daysOfWeek?: number[];
+    dayOfMonth?: number | null;
+    interval?: number;
+    timesPerPeriod?: number;
+    endDate?: Date;
+  };
+
+  @IsOptional()
+  pomodoroSettings?: {
+    focusDuration?: number;
+    breakDuration?: number;
+    longBreakDuration?: number;
+    totalSessions?: number;
+    isEnabled?: boolean;
+    autoStartBreaks?: boolean;
+    autoStartFocus?: boolean;
+  };
 }
 
 @Injectable()
@@ -56,6 +155,15 @@ export class UpdateTaskUseCase {
       colorValue: dto.colorValue !== undefined ? dto.colorValue : existing.colorValue,
       imageUrl: dto.imageUrl !== undefined ? dto.imageUrl : existing.imageUrl,
       isPublic: dto.isPublic !== undefined ? dto.isPublic : existing.isPublic,
+      startDate: dto.startDate ?? existing.startDate,
+      endDate: dto.endDate !== undefined ? dto.endDate : existing.endDate,
+      notes: dto.notes ?? existing.notes,
+      reminders:
+        dto.reminders?.map((r: Record<string, any>) => new TaskReminder(r)) ?? existing.reminders,
+      frequency: dto.frequency ? new TaskFrequency(dto.frequency) : existing.frequency,
+      pomodoroSettings: dto.pomodoroSettings
+        ? new PomodoroSettings(dto.pomodoroSettings)
+        : existing.pomodoroSettings,
     };
 
     switch (existing.taskType) {
@@ -85,6 +193,7 @@ export class UpdateTaskUseCase {
           priority: (dto.priority as TodoEntity['priority']) ?? e.priority,
           isFlagged: dto.isFlagged ?? e.isFlagged,
           url: dto.url !== undefined ? dto.url : e.url,
+          subtasks: dto.subtasks?.map((s: Record<string, any>) => new TodoSubtask(s)) ?? e.subtasks,
         });
       }
       case TaskType.MINDSET: {

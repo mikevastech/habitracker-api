@@ -12,6 +12,8 @@ import { LogCompletionUseCase } from './application/log-completion.use-case';
 import { ListCompletionsUseCase } from './application/list-completions.use-case';
 import { GetCategoriesUseCase } from './application/get-categories.use-case';
 import { GetUnitsUseCase } from './application/get-units.use-case';
+import { CreateCategoryUseCase } from './application/create-category.use-case';
+import { CreateUnitUseCase } from './application/create-unit.use-case';
 import { GetTaskTemplatesUseCase } from './application/get-task-templates.use-case';
 import { ITaskRepository } from './domain/repositories/task.repository.interface';
 import { IReferenceRepository } from './domain/repositories/reference.repository.interface';
@@ -39,6 +41,8 @@ import { ReferenceRepositoryImpl } from './infrastructure/repositories/reference
     ListCompletionsUseCase,
     GetCategoriesUseCase,
     GetUnitsUseCase,
+    CreateCategoryUseCase,
+    CreateUnitUseCase,
     GetTaskTemplatesUseCase,
     {
       provide: ITaskLocalDataSource,

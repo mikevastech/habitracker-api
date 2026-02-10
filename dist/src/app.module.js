@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const core_1 = require("@nestjs/core");
+const analytics_module_1 = require("./shared/infrastructure/analytics/analytics.module");
 const prisma_module_1 = require("./shared/infrastructure/prisma/prisma.module");
 const redis_module_1 = require("./shared/infrastructure/redis/redis.module");
 const profile_module_1 = require("./modules/profile/profile.module");
@@ -47,6 +48,7 @@ exports.AppModule = AppModule = __decorate([
             ]),
             prisma_module_1.PrismaModule,
             redis_module_1.RedisModule,
+            analytics_module_1.AnalyticsModule,
             auth_module_1.AuthModule,
             task_module_1.TaskModule,
             profile_module_1.ProfileModule,

@@ -18,6 +18,71 @@ export enum HabitDirection {
   NEGATIVE = 'NEGATIVE',
 }
 
+export class TaskReminder {
+  id!: string;
+  type!: string;
+  time?: string;
+  locationName?: string;
+  latitude?: number;
+  longitude?: number;
+  message?: string;
+  isEnabled!: boolean;
+
+  constructor(partial: Partial<TaskReminder>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class TodoSubtask {
+  id!: string;
+  title!: string;
+  isCompleted!: boolean;
+
+  constructor(partial: Partial<TodoSubtask>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class TaskFrequency {
+  id!: string;
+  type!: string;
+  daysOfWeek!: number[];
+  dayOfMonth!: number | null;
+  interval!: number;
+  timesPerPeriod!: number | null;
+  endDate!: Date | null;
+
+  constructor(partial: Partial<TaskFrequency>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class PomodoroSettings {
+  taskId!: string;
+  focusDuration!: number;
+  breakDuration!: number;
+  longBreakDuration!: number;
+  totalSessions!: number;
+  isEnabled!: boolean;
+  autoStartBreaks!: boolean;
+  autoStartFocus!: boolean;
+
+  constructor(partial: Partial<PomodoroSettings>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class TaskUnit {
+  id!: string;
+  name!: string;
+  symbol!: string;
+  isPredefined!: boolean;
+
+  constructor(partial: Partial<TaskUnit>) {
+    Object.assign(this, partial);
+  }
+}
+
 export abstract class TaskEntity {
   id!: string;
   userId!: string; // References HabitProfile.userId
@@ -46,9 +111,13 @@ export abstract class TaskEntity {
   endDate!: Date | null;
 
   notes!: string[];
+  reminders!: TaskReminder[];
+  frequency?: TaskFrequency;
+  pomodoroSettings?: PomodoroSettings;
 
   constructor(partial: Partial<TaskEntity>) {
     Object.assign(this, partial);
+    if (!this.reminders) this.reminders = [];
   }
 }
 
@@ -82,10 +151,12 @@ export class TodoEntity extends TaskEntity {
   priority!: TaskPriority;
   isFlagged!: boolean;
   url!: string | null;
+  subtasks!: TodoSubtask[];
 
   constructor(partial: Partial<TodoEntity>) {
     super(partial);
     Object.assign(this, partial);
+    if (!this.subtasks) this.subtasks = [];
   }
 }
 

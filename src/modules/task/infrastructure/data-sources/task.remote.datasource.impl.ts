@@ -12,6 +12,10 @@ import {
   MindsetEntity,
   HabitDirection as DomainHabitDirection,
   TaskPriority as DomainTaskPriority,
+  TaskReminder,
+  TodoSubtask,
+  TaskFrequency,
+  PomodoroSettings,
 } from '../../domain/entities/task.entity';
 import { TaskCompletionEntity } from '../../domain/entities/task-completion.entity';
 import {
@@ -23,10 +27,14 @@ import {
 
 type PrismaTaskWithRelations = Prisma.TaskGetPayload<{
   include: {
-    habitDetails: true;
+    habitDetails: { include: { unit: true } };
     routineDetails: true;
-    todoDetails: true;
+    todoDetails: { include: { subtasks: true } };
     mindsetDetails: true;
+    category: true;
+    reminders: true;
+    frequency: true;
+    pomodoroSettings: true;
   };
 }>;
 
@@ -49,7 +57,44 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
       endDate: task.endDate,
       challenge: task.challengeId ? { connect: { id: task.challengeId } } : undefined,
       category: task.categoryId ? { connect: { id: task.categoryId } } : undefined,
-      frequency: task.frequencyId ? { connect: { id: task.frequencyId } } : undefined,
+      frequency: task.frequency
+        ? {
+            create: {
+              type: task.frequency.type,
+              daysOfWeek: task.frequency.daysOfWeek,
+              dayOfMonth: task.frequency.dayOfMonth,
+              interval: task.frequency.interval,
+              timesPerPeriod: task.frequency.timesPerPeriod,
+              endDate: task.frequency.endDate,
+            },
+          }
+        : task.frequencyId
+          ? { connect: { id: task.frequencyId } }
+          : undefined,
+      reminders: {
+        create: task.reminders?.map((r) => ({
+          type: r.type,
+          time: r.time,
+          locationName: r.locationName,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          message: r.message,
+          isEnabled: r.isEnabled,
+        })),
+      },
+      pomodoroSettings: task.pomodoroSettings
+        ? {
+            create: {
+              focusDuration: task.pomodoroSettings.focusDuration,
+              breakDuration: task.pomodoroSettings.breakDuration,
+              longBreakDuration: task.pomodoroSettings.longBreakDuration,
+              totalSessions: task.pomodoroSettings.totalSessions,
+              isEnabled: task.pomodoroSettings.isEnabled,
+              autoStartBreaks: task.pomodoroSettings.autoStartBreaks,
+              autoStartFocus: task.pomodoroSettings.autoStartFocus,
+            },
+          }
+        : undefined,
     };
 
     if (task instanceof HabitEntity) {
@@ -75,6 +120,12 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
           priority: task.priority as PrismaTaskPriority,
           isFlagged: task.isFlagged,
           url: task.url,
+          subtasks: {
+            create: task.subtasks?.map((s) => ({
+              title: s.title,
+              isCompleted: s.isCompleted,
+            })),
+          },
         },
       };
     } else if (task instanceof MindsetEntity) {
@@ -89,10 +140,11 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
     const created = await this.prisma.task.create({
       data,
       include: {
-        habitDetails: true,
+        habitDetails: { include: { unit: true } },
         routineDetails: true,
-        todoDetails: true,
+        todoDetails: { include: { subtasks: true } },
         mindsetDetails: true,
+        pomodoroSettings: true,
       },
     });
 
@@ -100,18 +152,22 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
   }
 
   async findById(id: string): Promise<TaskEntity | null> {
-    const task = await this.prisma.task.findUnique({
+    const row = await this.prisma.task.findUnique({
       where: { id },
       include: {
-        habitDetails: true,
+        habitDetails: { include: { unit: true } },
         routineDetails: true,
-        todoDetails: true,
+        todoDetails: { include: { subtasks: true } },
         mindsetDetails: true,
+        category: true,
+        reminders: true,
+        frequency: true,
+        pomodoroSettings: true,
       },
     });
 
-    if (!task) return null;
-    return this.mapToEntity(task as PrismaTaskWithRelations);
+    if (!row) return null;
+    return this.mapToEntity(row as PrismaTaskWithRelations);
   }
 
   async findByUserId(
@@ -142,9 +198,12 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
       include: {
         habitDetails: { include: { unit: true } },
         routineDetails: true,
-        todoDetails: true,
+        todoDetails: { include: { subtasks: true } },
         mindsetDetails: true,
         category: true,
+        reminders: true,
+        frequency: true,
+        pomodoroSettings: true,
       },
     });
 
@@ -172,6 +231,69 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
       category: task.categoryId ? { connect: { id: task.categoryId } } : undefined,
     };
 
+    if (task.reminders) {
+      data.reminders = {
+        deleteMany: {},
+        create: task.reminders.map((r) => ({
+          type: r.type,
+          time: r.time,
+          locationName: r.locationName,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          message: r.message,
+          isEnabled: r.isEnabled,
+        })),
+      };
+    }
+
+    if (task.frequency) {
+      data.frequency = {
+        upsert: {
+          create: {
+            type: task.frequency.type,
+            daysOfWeek: task.frequency.daysOfWeek,
+            dayOfMonth: task.frequency.dayOfMonth,
+            interval: task.frequency.interval,
+            timesPerPeriod: task.frequency.timesPerPeriod,
+            endDate: task.frequency.endDate,
+          },
+          update: {
+            type: task.frequency.type,
+            daysOfWeek: task.frequency.daysOfWeek,
+            dayOfMonth: task.frequency.dayOfMonth,
+            interval: task.frequency.interval,
+            timesPerPeriod: task.frequency.timesPerPeriod,
+            endDate: task.frequency.endDate,
+          },
+        },
+      };
+    }
+
+    if (task.pomodoroSettings) {
+      data.pomodoroSettings = {
+        upsert: {
+          create: {
+            focusDuration: task.pomodoroSettings.focusDuration,
+            breakDuration: task.pomodoroSettings.breakDuration,
+            longBreakDuration: task.pomodoroSettings.longBreakDuration,
+            totalSessions: task.pomodoroSettings.totalSessions,
+            isEnabled: task.pomodoroSettings.isEnabled,
+            autoStartBreaks: task.pomodoroSettings.autoStartBreaks,
+            autoStartFocus: task.pomodoroSettings.autoStartFocus,
+          },
+          update: {
+            focusDuration: task.pomodoroSettings.focusDuration,
+            breakDuration: task.pomodoroSettings.breakDuration,
+            longBreakDuration: task.pomodoroSettings.longBreakDuration,
+            totalSessions: task.pomodoroSettings.totalSessions,
+            isEnabled: task.pomodoroSettings.isEnabled,
+            autoStartBreaks: task.pomodoroSettings.autoStartBreaks,
+            autoStartFocus: task.pomodoroSettings.autoStartFocus,
+          },
+        },
+      };
+    }
+
     if (task instanceof HabitEntity) {
       data.habitDetails = {
         update: {
@@ -195,6 +317,15 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
           priority: task.priority as PrismaTaskPriority,
           isFlagged: task.isFlagged,
           url: task.url,
+          subtasks: task.subtasks
+            ? {
+                deleteMany: {},
+                create: task.subtasks.map((s) => ({
+                  title: s.title,
+                  isCompleted: s.isCompleted,
+                })),
+              }
+            : undefined,
         },
       };
     } else if (task instanceof MindsetEntity) {
@@ -210,10 +341,14 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
       where: { id },
       data,
       include: {
-        habitDetails: true,
+        habitDetails: { include: { unit: true } },
         routineDetails: true,
-        todoDetails: true,
+        todoDetails: { include: { subtasks: true } },
         mindsetDetails: true,
+        category: true,
+        reminders: true,
+        frequency: true,
+        pomodoroSettings: true,
       },
     });
 
@@ -287,10 +422,27 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
   }
 
   private mapToEntity(prismaTask: PrismaTaskWithRelations): TaskEntity {
-    const { habitDetails, routineDetails, todoDetails, mindsetDetails, ...rest } = prismaTask;
+    const {
+      habitDetails,
+      routineDetails,
+      todoDetails,
+      mindsetDetails,
+      reminders,
+      frequency,
+      pomodoroSettings,
+      ...rest
+    } = prismaTask;
     const typeName = prismaTask.type as unknown as TaskType;
 
-    const baseData = { ...rest, taskType: typeName };
+    const baseData = {
+      ...rest,
+      taskType: typeName,
+      reminders: reminders?.map((r: Record<string, any>) => new TaskReminder(r)) ?? [],
+      frequency: frequency ? new TaskFrequency(frequency as Record<string, any>) : undefined,
+      pomodoroSettings: pomodoroSettings
+        ? new PomodoroSettings(pomodoroSettings as Record<string, any>)
+        : undefined,
+    };
 
     switch (typeName) {
       case TaskType.HABIT:
@@ -317,6 +469,8 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
             (todoDetails?.priority as unknown as DomainTaskPriority) ?? DomainTaskPriority.NONE,
           isFlagged: todoDetails?.isFlagged ?? false,
           url: todoDetails?.url ?? null,
+          subtasks:
+            todoDetails?.subtasks?.map((s: Record<string, any>) => new TodoSubtask(s)) ?? [],
         });
       case TaskType.MINDSET:
         return new MindsetEntity({

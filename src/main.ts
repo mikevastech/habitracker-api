@@ -2,10 +2,23 @@ import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
+import { getSwaggerConfig } from './swagger.config';
+import { LoggingInterceptor } from './shared/infrastructure/logging/logging.interceptor';
+import { requestLoggerMiddleware } from './shared/infrastructure/logging/request-logger.middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    ...(process.env.NODE_ENV !== 'production' && {
+      logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    }),
+  });
+
+  if (process.env.NODE_ENV !== 'production') {
+    app.use(requestLoggerMiddleware); // first: log every request (incl. POST) before guards
+    app.useGlobalInterceptors(new LoggingInterceptor());
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -16,22 +29,9 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Habit Tracker API')
-    .setDescription('API for habit tracking, community, challenges and gamification')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('auth', 'Authentication (Better Auth)')
-    .addTag('profile', 'Profile, settings, follow, suggestions')
-    .addTag('tasks', 'Tasks and completions')
-    .addTag('posts', 'Posts, feed, comments, likes')
-    .addTag('groups', 'Groups and members')
-    .addTag('challenges', 'Challenges and progress')
-    .addTag('notifications', 'User notifications')
-    .addTag('gamification', 'Rewards and achievements')
-    .addTag('upload', 'Image upload (Cloudinary)')
-    .build();
+  const config = getSwaggerConfig();
   const document = SwaggerModule.createDocument(app, config);
+  // Swagger UI: /api/docs | OpenAPI JSON: /api/docs-json
   SwaggerModule.setup('api/docs', app, document);
 
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
