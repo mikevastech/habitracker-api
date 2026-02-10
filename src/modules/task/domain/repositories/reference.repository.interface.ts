@@ -21,6 +21,8 @@ export interface CreateUnitData {
 export interface IReferenceRepository {
   findPredefinedCategories(): Promise<CategoryEntity[]>;
   findPredefinedUnits(): Promise<TaskUnitEntity[]>;
+  findCategoriesForUser(userId: string): Promise<CategoryEntity[]>;
+  findUnitsForUser(userId: string): Promise<TaskUnitEntity[]>;
   findPredefinedTaskTemplates(): Promise<TaskTemplateItem[]>;
   createCategory(userId: string, data: CreateCategoryData): Promise<CategoryEntity>;
   createUnit(userId: string, data: CreateUnitData): Promise<TaskUnitEntity>;

@@ -69,6 +69,42 @@ export class ReferenceRemoteDataSourceImpl implements IReferenceRemoteDataSource
     );
   }
 
+  async findCategoriesForUser(userId: string): Promise<CategoryEntity[]> {
+    const rows = await (this.prisma as any).category.findMany({
+      where: { OR: [{ isPredefined: true }, { userId }] },
+      orderBy: { name: 'asc' },
+    });
+    return rows.map(
+      (r: { id: string; name: string; iconName: string | null; colorValue: number | null; imageUrl: string | null; userId: string | null; isPredefined: boolean }) =>
+        new CategoryEntity({
+          id: r.id,
+          name: r.name,
+          iconName: r.iconName,
+          colorValue: r.colorValue,
+          imageUrl: r.imageUrl,
+          userId: r.userId,
+          isPredefined: r.isPredefined,
+        }),
+    );
+  }
+
+  async findUnitsForUser(userId: string): Promise<TaskUnitEntity[]> {
+    const rows = await (this.prisma as any).taskUnit.findMany({
+      where: { OR: [{ isPredefined: true }, { userId }] },
+      orderBy: { name: 'asc' },
+    });
+    return rows.map(
+      (r: { id: string; name: string; symbol: string; userId: string | null; isPredefined: boolean }) =>
+        new TaskUnitEntity({
+          id: r.id,
+          name: r.name,
+          symbol: r.symbol,
+          userId: r.userId,
+          isPredefined: r.isPredefined,
+        }),
+    );
+  }
+
   async createCategory(userId: string, data: CreateCategoryData): Promise<CategoryEntity> {
     const r = await this.prisma.category.create({
       data: {

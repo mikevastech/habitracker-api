@@ -115,18 +115,17 @@
           "Auth"
         ]
       },
-      "search": {
-        "operationId": "AuthController_handleAuth_search",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Auth"
-        ]
-      }
+      "parameters": [
+        {
+          "name": "path",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Better Auth route segment (e.g. sign-in, callback/google)"
+        }
+      ]
     },
     "/tasks": {
       "post": {

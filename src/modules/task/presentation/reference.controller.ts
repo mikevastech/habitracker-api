@@ -39,13 +39,15 @@ export class ReferenceController {
   ) {}
 
   @Get('categories')
-  async getCategories() {
-    return this.getCategoriesUseCase.execute(new NoParams());
+  @UseGuards(SessionGuard)
+  async getCategories(@CurrentUser() user: AuthenticatedUser) {
+    return this.getCategoriesUseCase.execute({ userId: user.id });
   }
 
   @Get('units')
-  async getUnits() {
-    return this.getUnitsUseCase.execute(new NoParams());
+  @UseGuards(SessionGuard)
+  async getUnits(@CurrentUser() user: AuthenticatedUser) {
+    return this.getUnitsUseCase.execute({ userId: user.id });
   }
 
   @Post('categories')

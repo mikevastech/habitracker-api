@@ -32,6 +32,14 @@ export class ReferenceRepositoryImpl implements IReferenceRepository {
     return data;
   }
 
+  async findCategoriesForUser(userId: string) {
+    return this.remoteDataSource.findCategoriesForUser(userId);
+  }
+
+  async findUnitsForUser(userId: string) {
+    return this.remoteDataSource.findUnitsForUser(userId);
+  }
+
   async findPredefinedTaskTemplates() {
     const cached = await this.localDataSource.getCachedTaskTemplates();
     if (cached) return cached;
