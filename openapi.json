@@ -1,6 +1,35 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "AppController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Health check for Cloud Run / UptimeRobot",
+        "tags": [
+          "health"
+        ]
+      }
+    },
     "/auth/{path}": {
       "get": {
         "operationId": "AuthController_handleAuth_get",
@@ -171,6 +200,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogCompletionDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -252,6 +291,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -304,7 +353,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCategoryBodyDto"
+                "$ref": "#/components/schemas/CreateCategoryDto"
               }
             }
           }
@@ -340,7 +389,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUnitBodyDto"
+                "$ref": "#/components/schemas/CreateUnitDto"
               }
             }
           }
@@ -444,6 +493,16 @@
       "patch": {
         "operationId": "ProfileController_updateMySettings",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileSettingsDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -773,6 +832,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCommentDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -1347,6 +1416,16 @@
       "post": {
         "operationId": "UploadController_uploadImage",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadImageBodyDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -1412,17 +1491,255 @@
       }
     },
     "schemas": {
-      "CreateCategoryBodyDto": {
+      "LogCompletionDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Numeric value (e.g. for habits)"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
       },
-      "CreateUnitBodyDto": {
+      "UpdateTaskDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "object"
+          },
+          "iconName": {
+            "type": "object"
+          },
+          "colorValue": {
+            "type": "object"
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "goalValue": {
+            "type": "number"
+          },
+          "currentValue": {
+            "type": "number"
+          },
+          "unitId": {
+            "type": "object"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startTime": {
+            "type": "object"
+          },
+          "dueTime": {
+            "type": "object"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "isFlagged": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "object"
+          },
+          "affirmation": {
+            "type": "object"
+          },
+          "durationMinutes": {
+            "type": "object"
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subtasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "frequency": {
+            "type": "object"
+          },
+          "pomodoroSettings": {
+            "type": "object"
+          }
+        }
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Health"
+          },
+          "iconName": {
+            "type": "object"
+          },
+          "colorValue": {
+            "type": "object"
+          },
+          "imageUrl": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateUnitDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Kilometers"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "km"
+          }
+        },
+        "required": [
+          "name",
+          "symbol"
+        ]
       },
       "UpdateProfileDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "isTaggingAllowed": {
+            "type": "boolean"
+          },
+          "avatarUrl": {
+            "type": "object"
+          }
+        }
+      },
+      "UpdateProfileSettingsDto": {
+        "type": "object",
+        "properties": {
+          "isSearchable": {
+            "type": "boolean"
+          },
+          "analyticsEnabled": {
+            "type": "boolean"
+          },
+          "profileVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "challengeVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "challengePostVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "taskDailyReminderTime": {
+            "type": "object"
+          },
+          "taskWeekStartDay": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "taskArchiveVisible": {
+            "type": "boolean"
+          },
+          "pomodoroFocusDuration": {
+            "type": "number",
+            "minimum": 1
+          },
+          "pomodoroBreakDuration": {
+            "type": "number",
+            "minimum": 1
+          },
+          "pomodoroLongBreakDuration": {
+            "type": "number",
+            "minimum": 1
+          }
+        }
+      },
+      "AddCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 5000,
+            "example": "Great progress!"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UploadImageBodyDto": {
+        "type": "object",
+        "properties": {
+          "folder": {
+            "type": "string",
+            "description": "Cloudinary folder path"
+          },
+          "publicIdPrefix": {
+            "type": "string",
+            "description": "Prefix for public_id"
+          }
+        }
       }
     }
   }
