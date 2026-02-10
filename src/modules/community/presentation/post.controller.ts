@@ -3,7 +3,9 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
-import { CreatePostUseCase, CreatePostDto } from '../application/create-post.use-case';
+import { CreatePostUseCase } from '../application/create-post.use-case';
+import { CreatePostDto } from '../application/dtos/create-post.dto';
+import { AddCommentDto } from '../application/dtos/add-comment.dto';
 import { GetFeedUseCase } from '../application/get-feed.use-case';
 import { GetPostUseCase } from '../application/get-post.use-case';
 import { DeletePostUseCase } from '../application/delete-post.use-case';
@@ -36,20 +38,18 @@ export class PostController {
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
     const offset = Math.max(parseInt(offsetStr ?? '0', 10) || 0, 0);
-    return this.getFeedUseCase.execute(user.id, limit, offset);
+    return this.getFeedUseCase.execute({ userId: user.id, limit, offset });
   }
 
   @Get(':id')
   async getById(@Param('id') id: string, @CurrentUser() user?: AuthenticatedUser) {
-    return this.getPostUseCase.execute(id, {
-      callerUserId: user?.id,
-    });
+    return this.getPostUseCase.execute({ postId: id, callerUserId: user?.id });
   }
 
   @Delete(':id')
   @UseGuards(SessionGuard)
   async delete(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    await this.deletePostUseCase.execute(id, user.id);
+    await this.deletePostUseCase.execute({ postId: id, userId: user.id });
   }
 
   @Post()
@@ -85,13 +85,13 @@ export class PostController {
   @Post(':id/like')
   @UseGuards(SessionGuard)
   async like(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.likePostUseCase.execute(id, user.id, 'LIKE');
+    return this.likePostUseCase.execute({ postId: id, userId: user.id, action: 'LIKE' });
   }
 
   @Delete(':id/like')
   @UseGuards(SessionGuard)
   async unlike(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.likePostUseCase.execute(id, user.id, 'UNLIKE');
+    return this.likePostUseCase.execute({ postId: id, userId: user.id, action: 'UNLIKE' });
   }
 
   @Post(':id/comments')
@@ -99,12 +99,12 @@ export class PostController {
   async addComment(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body('content') content: string,
+    @Body() dto: AddCommentDto,
   ) {
     return this.addCommentUseCase.execute({
       postId: id,
       userId: user.id,
-      content,
+      dto,
     });
   }
 
@@ -115,6 +115,6 @@ export class PostController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '10', 10) || 10, 1), 50);
-    return this.listCommentsUseCase.execute(id, limit, cursor);
+    return this.listCommentsUseCase.execute({ postId: id, limit, cursor });
   }
 }

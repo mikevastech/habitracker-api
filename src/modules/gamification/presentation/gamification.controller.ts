@@ -3,6 +3,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
+import { NoParams } from '../../../shared/domain/ports/use-case.port';
 import { ListRewardEventsUseCase } from '../application/list-reward-events.use-case';
 import { ListAchievementDefinitionsUseCase } from '../application/list-achievement-definitions.use-case';
 import { GetUserAchievementProgressUseCase } from '../application/get-user-achievement-progress.use-case';
@@ -25,19 +26,19 @@ export class GamificationController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listRewardEventsUseCase.execute(user.id, limit, cursor);
+    return this.listRewardEventsUseCase.execute({ userId: user.id, limit, cursor });
   }
 
   /** All achievement definitions (public, cached). */
   @Get('achievements')
   async listAchievementDefinitions() {
-    return this.listAchievementDefinitionsUseCase.execute();
+    return this.listAchievementDefinitionsUseCase.execute(new NoParams());
   }
 
   /** Current user's progress per achievement (count earned, last earned). */
   @Get('achievements/progress')
   @UseGuards(SessionGuard)
   async getMyAchievementProgress(@CurrentUser() user: AuthenticatedUser) {
-    return this.getUserAchievementProgressUseCase.execute(user.id);
+    return this.getUserAchievementProgressUseCase.execute({ userId: user.id });
   }
 }

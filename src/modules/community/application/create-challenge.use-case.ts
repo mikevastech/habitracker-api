@@ -1,45 +1,12 @@
 import { Inject, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
-import {
-  IsDateString,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  Min,
-  MinLength,
-} from 'class-validator';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
 import { IChallengeRepository } from '../domain/repositories/challenge.repository.interface';
 import { IGroupRepository } from '../domain/repositories/group.repository.interface';
 import { ChallengeEntity } from '../domain/entities/community.entity';
-
-export class CreateChallengeDto {
-  userId!: string;
-  groupId!: string;
-  @MinLength(1)
-  @MaxLength(200)
-  title!: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(2000)
-  description?: string | null;
-  @IsOptional()
-  @IsUrl()
-  imageUrl?: string | null;
-  taskTemplate?: unknown;
-  @IsDateString()
-  startDate!: string;
-  @IsOptional()
-  @IsDateString()
-  endDate?: string | null;
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  onTrackStreakThreshold?: number;
-}
+import type { CreateChallengeDto } from './dtos/create-challenge.dto';
 
 @Injectable()
-export class CreateChallengeUseCase {
+export class CreateChallengeUseCase implements IUseCase<ChallengeEntity, CreateChallengeDto> {
   constructor(
     @Inject(IChallengeRepository)
     private readonly challengeRepository: IChallengeRepository,
@@ -47,21 +14,21 @@ export class CreateChallengeUseCase {
     private readonly groupRepository: IGroupRepository,
   ) {}
 
-  async execute(dto: CreateChallengeDto): Promise<ChallengeEntity> {
-    const group = await this.groupRepository.findById(dto.groupId);
+  async execute(params: CreateChallengeDto): Promise<ChallengeEntity> {
+    const group = await this.groupRepository.findById(params.groupId);
     if (!group) throw new NotFoundException('Group not found');
-    const isMember = await this.groupRepository.isMember(dto.groupId, dto.userId);
+    const isMember = await this.groupRepository.isMember(params.groupId, params.userId);
     if (!isMember) throw new ForbiddenException('Must be a group member to create a challenge');
     return this.challengeRepository.create({
-      groupId: dto.groupId,
-      creatorId: dto.userId,
-      title: dto.title,
-      description: dto.description ?? null,
-      imageUrl: dto.imageUrl ?? null,
-      taskTemplate: dto.taskTemplate ?? undefined,
-      startDate: new Date(dto.startDate),
-      endDate: dto.endDate ? new Date(dto.endDate) : null,
-      onTrackStreakThreshold: dto.onTrackStreakThreshold ?? 3,
+      groupId: params.groupId,
+      creatorId: params.userId,
+      title: params.title,
+      description: params.description ?? null,
+      imageUrl: params.imageUrl ?? null,
+      taskTemplate: params.taskTemplate ?? undefined,
+      startDate: new Date(params.startDate),
+      endDate: params.endDate ? new Date(params.endDate) : null,
+      onTrackStreakThreshold: params.onTrackStreakThreshold ?? 3,
     });
   }
 }

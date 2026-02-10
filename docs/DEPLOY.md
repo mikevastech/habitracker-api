@@ -23,6 +23,7 @@ Copy `.env.example` to `.env` and set:
 | `CORS_ALLOWED_ORIGINS` | Comma-separated origins (e.g. `https://app.example.com`) |
 | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Image upload (optional) |
 | `MIXPANEL_PROJECT_TOKEN` / `MIXPANEL_API_SECRET` | Analytics (optional) |
+| `SENTRY_DSN` | Sentry project DSN for error tracking (optional; if set, uncaught errors are reported) |
 
 ## Database (Prisma)
 

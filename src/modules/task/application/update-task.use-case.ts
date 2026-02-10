@@ -1,6 +1,10 @@
-import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ITaskRepository } from '../domain/repositories/task.repository.interface';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+import {
+  NotFoundDomainError,
+  ForbiddenDomainError,
+} from '../../../shared/domain/errors/domain.exceptions';
 import {
   TaskEntity,
   TaskType,
@@ -13,137 +17,29 @@ import {
   TaskFrequency,
   PomodoroSettings,
 } from '../domain/entities/task.entity';
+import type { UpdateTaskDto } from './dtos/update-task.dto';
 
-export class UpdateTaskDto {
-  @IsString()
-  @IsOptional()
-  title?: string;
-
-  @IsString()
-  @IsOptional()
-  categoryId?: string | null;
-
-  @IsString()
-  @IsOptional()
-  iconName?: string | null;
-
-  @IsNumber()
-  @IsOptional()
-  colorValue?: number | null;
-
-  @IsString()
-  @IsOptional()
-  imageUrl?: string | null;
-
-  @IsBoolean()
-  @IsOptional()
-  isPublic?: boolean;
-
-  @IsDate()
-  @IsOptional()
-  startDate?: Date;
-
-  @IsDate()
-  @IsOptional()
-  endDate?: Date | null;
-
-  @IsArray()
-  @IsOptional()
-  notes?: string[];
-
-  // type-specific (optional)
-  @IsNumber()
-  @IsOptional()
-  goalValue?: number;
-
-  @IsNumber()
-  @IsOptional()
-  currentValue?: number;
-
-  @IsString()
-  @IsOptional()
-  unitId?: string | null;
-
-  @IsString()
-  @IsOptional()
-  direction?: string;
-
-  @IsArray()
-  @IsOptional()
-  steps?: string[];
-
-  @IsString()
-  @IsOptional()
-  startTime?: string | null;
-
-  @IsDate()
-  @IsOptional()
-  dueTime?: Date | null;
-
-  @IsString()
-  @IsOptional()
-  priority?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isFlagged?: boolean;
-
-  @IsString()
-  @IsOptional()
-  url?: string | null;
-
-  @IsString()
-  @IsOptional()
-  affirmation?: string | null;
-
-  @IsNumber()
-  @IsOptional()
-  durationMinutes?: number | null;
-
-  @IsArray()
-  @IsOptional()
-  reminders?: any[];
-
-  @IsArray()
-  @IsOptional()
-  subtasks?: any[];
-
-  @IsOptional()
-  frequency?: {
-    type: string;
-    daysOfWeek?: number[];
-    dayOfMonth?: number | null;
-    interval?: number;
-    timesPerPeriod?: number;
-    endDate?: Date;
-  };
-
-  @IsOptional()
-  pomodoroSettings?: {
-    focusDuration?: number;
-    breakDuration?: number;
-    longBreakDuration?: number;
-    totalSessions?: number;
-    isEnabled?: boolean;
-    autoStartBreaks?: boolean;
-    autoStartFocus?: boolean;
-  };
+export interface UpdateTaskParams {
+  taskId: string;
+  userId: string;
+  dto: UpdateTaskDto;
 }
 
 @Injectable()
-export class UpdateTaskUseCase {
+export class UpdateTaskUseCase implements IUseCase<TaskEntity, UpdateTaskParams> {
   constructor(
     @Inject(ITaskRepository)
     private readonly taskRepository: ITaskRepository,
   ) {}
 
-  async execute(taskId: string, userId: string, dto: UpdateTaskDto): Promise<TaskEntity> {
-    const existing = await this.taskRepository.findById(taskId);
-    if (!existing) throw new NotFoundException('Task not found');
-    if (existing.userId !== userId) throw new ForbiddenException('Not allowed to update this task');
+  async execute(params: UpdateTaskParams): Promise<TaskEntity> {
+    const existing = await this.taskRepository.findById(params.taskId);
+    if (!existing) throw new NotFoundDomainError('Task not found');
+    if (existing.userId !== params.userId)
+      throw new ForbiddenDomainError('Not allowed to update this task');
 
-    const merged = this.merge(existing, dto);
-    return this.taskRepository.update(taskId, merged);
+    const merged = this.merge(existing, params.dto);
+    return this.taskRepository.update(params.taskId, merged);
   }
 
   private merge(existing: TaskEntity, dto: UpdateTaskDto): TaskEntity {

@@ -3,15 +3,22 @@ import { IProfileRepository } from '../domain/repositories/profile.repository.in
 import { IFollowLocalDataSource } from '../infrastructure/data-sources/follow.local.datasource.interface';
 import { HabitProfileEntity } from '../domain/entities/profile.entity';
 import { SuggestionsComputeService } from './suggestions-compute.service';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
 
 const TOP_N = 20;
+
+export interface GetSuggestedUsersParams {
+  userId: string;
+}
 
 /**
  * Level 1: Read user:{id}:suggestions; on miss compute mutual friends, cache, return.
  * Level 2: If following empty or no suggestions, use global:suggestions.
  */
 @Injectable()
-export class GetSuggestedUsersUseCase {
+export class GetSuggestedUsersUseCase
+  implements IUseCase<HabitProfileEntity[], GetSuggestedUsersParams>
+{
   constructor(
     @Inject(IFollowLocalDataSource)
     private readonly followLocal: IFollowLocalDataSource,
@@ -20,18 +27,21 @@ export class GetSuggestedUsersUseCase {
     private readonly suggestionsCompute: SuggestionsComputeService,
   ) {}
 
-  async execute(userId: string): Promise<HabitProfileEntity[]> {
-    const cached = await this.followLocal.getSuggestions(userId);
+  async execute(params: GetSuggestedUsersParams): Promise<HabitProfileEntity[]> {
+    const cached = await this.followLocal.getSuggestions(params.userId);
     if (cached != null && cached.length > 0) {
       const profiles = await this.profileRepository.findManyByUserIds(cached);
       return this.orderByCached(cached, profiles);
     }
 
-    const myFollowing = await this.followLocal.getFollowingIds(userId);
+    const myFollowing = await this.followLocal.getFollowingIds(params.userId);
     if (myFollowing.length > 0) {
-      const computed = await this.suggestionsCompute.computeMutualFriendSuggestions(userId, TOP_N);
+      const computed = await this.suggestionsCompute.computeMutualFriendSuggestions(
+        params.userId,
+        TOP_N,
+      );
       if (computed.length > 0) {
-        await this.followLocal.setSuggestions(userId, computed);
+        await this.followLocal.setSuggestions(params.userId, computed);
         const profiles = await this.profileRepository.findManyByUserIds(computed);
         return this.orderByCached(computed, profiles);
       }

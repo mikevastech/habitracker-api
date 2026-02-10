@@ -22,11 +22,13 @@ function methodWithColor(method: string): string {
   }
 }
 
-/** Logs every request (method + url) before guards/interceptors. Ensures POST and others are always visible. */
 export function requestLoggerMiddleware(req: Request, _res: Response, next: NextFunction): void {
-  if (process.env.NODE_ENV === 'production') return next();
-  const method = methodWithColor(req.method);
   const url = req.originalUrl ?? req.url ?? '';
-  console.log(`[Request] → ${method} ${url}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[Request] ${req.method} ${url}`);
+  } else {
+    const method = methodWithColor(req.method);
+    console.log(`[Request] → ${method} ${url}`);
+  }
   next();
 }

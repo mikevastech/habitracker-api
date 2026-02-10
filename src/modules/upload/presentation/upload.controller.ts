@@ -11,6 +11,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { UploadImageUseCase } from '../application/upload-image.use-case';
+import { UploadImageBodyDto } from '../application/dtos/upload-image.dto';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -28,8 +29,7 @@ export class UploadController {
   )
   async uploadImage(
     @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string } | undefined,
-    @Body('folder') folder?: string,
-    @Body('publicIdPrefix') publicIdPrefix?: string,
+    @Body() body: UploadImageBodyDto,
   ) {
     if (!file) {
       throw new BadRequestException('Missing file. Use form field "file".');
@@ -39,8 +39,8 @@ export class UploadController {
       mimetype: file.mimetype,
       originalname: file.originalname,
       options: {
-        folder: folder || undefined,
-        publicIdPrefix: publicIdPrefix || undefined,
+        folder: body.folder ?? undefined,
+        publicIdPrefix: body.publicIdPrefix ?? undefined,
       },
     });
   }

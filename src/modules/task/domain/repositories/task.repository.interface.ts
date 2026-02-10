@@ -1,4 +1,5 @@
-import { TaskEntity, PaginatedResult, TaskType } from '../entities/task.entity';
+import type { Paginated } from '../../../../shared/domain/paginated.types';
+import { TaskEntity, TaskType } from '../entities/task.entity';
 import { TaskCompletionEntity } from '../entities/task-completion.entity';
 
 export interface ListTasksFilters {
@@ -14,7 +15,7 @@ export interface ITaskRepository {
     limit: number,
     cursor?: string,
     filters?: ListTasksFilters,
-  ): Promise<PaginatedResult<TaskEntity>>;
+  ): Promise<Paginated<TaskEntity>>;
   update(id: string, task: Partial<TaskEntity>): Promise<TaskEntity>;
   delete(id: string): Promise<void>;
 
@@ -26,7 +27,7 @@ export interface ITaskRepository {
     taskId: string,
     limit: number,
     cursor?: string,
-  ): Promise<PaginatedResult<TaskCompletionEntity>>;
+  ): Promise<Paginated<TaskCompletionEntity>>;
 }
 
 export const ITaskRepository = Symbol('ITaskRepository');

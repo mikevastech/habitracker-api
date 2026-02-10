@@ -3,7 +3,8 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
-import { CreateGroupUseCase, CreateGroupDto } from '../application/create-group.use-case';
+import { CreateGroupUseCase } from '../application/create-group.use-case';
+import { CreateGroupDto } from '../application/dtos/create-group.dto';
 import { ListGroupsUseCase } from '../application/list-groups.use-case';
 import { GetGroupUseCase } from '../application/get-group.use-case';
 import { JoinGroupUseCase } from '../application/join-group.use-case';
@@ -56,7 +57,8 @@ export class GroupController {
 
   @Get(':id')
   async getById(@Param('id') id: string, @CurrentUser() user?: AuthenticatedUser) {
-    return this.getGroupUseCase.execute(id, {
+    return this.getGroupUseCase.execute({
+      groupId: id,
       requireMember: true,
       userId: user?.id,
     });
@@ -65,13 +67,13 @@ export class GroupController {
   @Post(':id/join')
   @UseGuards(SessionGuard)
   async join(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.joinGroupUseCase.execute(id, user.id);
+    return this.joinGroupUseCase.execute({ groupId: id, userId: user.id });
   }
 
   @Delete(':id/members/me')
   @UseGuards(SessionGuard)
   async leave(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    await this.leaveGroupUseCase.execute(id, user.id);
+    await this.leaveGroupUseCase.execute({ groupId: id, userId: user.id });
   }
 
   @Get(':id/members')
@@ -82,7 +84,10 @@ export class GroupController {
     @CurrentUser() user?: AuthenticatedUser,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listGroupMembersUseCase.execute(id, limit, cursor, {
+    return this.listGroupMembersUseCase.execute({
+      groupId: id,
+      limit,
+      cursor,
       userId: user?.id,
     });
   }

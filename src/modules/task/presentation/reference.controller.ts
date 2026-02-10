@@ -1,14 +1,22 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
 import { GetCategoriesUseCase } from '../application/get-categories.use-case';
 import { GetUnitsUseCase } from '../application/get-units.use-case';
-import { CreateCategoryUseCase } from '../application/create-category.use-case';
-import { CreateUnitUseCase } from '../application/create-unit.use-case';
+import {
+  CreateCategoryUseCase,
+  type CreateCategoryParams,
+} from '../application/create-category.use-case';
+import {
+  CreateUnitUseCase,
+  type CreateUnitParams,
+} from '../application/create-unit.use-case';
 import { GetTaskTemplatesUseCase } from '../application/get-task-templates.use-case';
+import { NoParams } from '../../../shared/domain/ports/use-case.port';
+import { CreateCategoryDto } from '../application/dtos/create-category.dto';
+import { CreateUnitDto } from '../application/dtos/create-unit.dto';
 import {
   TaskType,
   HabitEntity,
@@ -18,34 +26,6 @@ import {
 } from '../domain/entities/task.entity';
 import type { CategoryEntity } from '../domain/entities/reference.entity';
 import type { TaskTemplateItem } from '../domain/repositories/reference.repository.interface';
-
-export class CreateCategoryBodyDto {
-  @IsString()
-  @IsNotEmpty()
-  name!: string;
-
-  @IsString()
-  @IsOptional()
-  iconName?: string | null;
-
-  @IsNumber()
-  @IsOptional()
-  colorValue?: number | null;
-
-  @IsString()
-  @IsOptional()
-  imageUrl?: string | null;
-}
-
-export class CreateUnitBodyDto {
-  @IsString()
-  @IsNotEmpty()
-  name!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  symbol!: string;
-}
 
 @ApiTags('reference')
 @Controller('reference')
@@ -60,36 +40,41 @@ export class ReferenceController {
 
   @Get('categories')
   async getCategories() {
-    return this.getCategoriesUseCase.execute();
+    return this.getCategoriesUseCase.execute(new NoParams());
   }
 
   @Get('units')
   async getUnits() {
-    return this.getUnitsUseCase.execute();
+    return this.getUnitsUseCase.execute(new NoParams());
   }
 
   @Post('categories')
   @UseGuards(SessionGuard)
   async createCategory(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: CreateCategoryBodyDto,
+    @Body() body: CreateCategoryDto,
   ) {
-    const category = await this.createCategoryUseCase.execute(user.id, {
-      name: body.name,
-      iconName: body.iconName ?? null,
-      colorValue: body.colorValue ?? null,
-      imageUrl: body.imageUrl ?? null,
-    });
+    const params: CreateCategoryParams = {
+      userId: user.id,
+      data: {
+        name: body.name,
+        iconName: body.iconName ?? null,
+        colorValue: body.colorValue ?? null,
+        imageUrl: body.imageUrl ?? null,
+      },
+    };
+    const category = await this.createCategoryUseCase.execute(params);
     return this.toCategoryDto(category);
   }
 
   @Post('units')
   @UseGuards(SessionGuard)
-  async createUnit(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateUnitBodyDto) {
-    const unit = await this.createUnitUseCase.execute(user.id, {
-      name: body.name,
-      symbol: body.symbol,
-    });
+  async createUnit(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateUnitDto) {
+    const params: CreateUnitParams = {
+      userId: user.id,
+      data: { name: body.name, symbol: body.symbol },
+    };
+    const unit = await this.createUnitUseCase.execute(params);
     return {
       id: unit.id,
       name: unit.name,
@@ -101,7 +86,7 @@ export class ReferenceController {
   @Get('task-templates')
   @UseGuards(SessionGuard)
   async getTaskTemplates() {
-    const items = await this.getTaskTemplatesUseCase.execute();
+    const items = await this.getTaskTemplatesUseCase.execute(new NoParams());
     return items.map((item) => this.toTaskTemplateResponse(item));
   }
 

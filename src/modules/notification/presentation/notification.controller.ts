@@ -26,18 +26,24 @@ export class NotificationController {
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
     const unreadOnly = unreadOnlyStr === 'true' || unreadOnlyStr === '1';
-    return this.listNotificationsUseCase.execute(user.id, limit, cursor, {
+    return this.listNotificationsUseCase.execute({
+      receiverId: user.id,
+      limit,
+      cursor,
       unreadOnly: unreadOnly || undefined,
     });
   }
 
   @Patch(':id/read')
   async markRead(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    await this.markNotificationReadUseCase.execute(id, user.id);
+    await this.markNotificationReadUseCase.execute({
+      notificationId: id,
+      receiverId: user.id,
+    });
   }
 
   @Patch('read-all')
   async markAllRead(@CurrentUser() user: AuthenticatedUser) {
-    await this.markAllNotificationsReadUseCase.execute(user.id);
+    await this.markAllNotificationsReadUseCase.execute({ receiverId: user.id });
   }
 }

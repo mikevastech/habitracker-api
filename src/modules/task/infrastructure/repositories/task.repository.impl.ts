@@ -3,7 +3,8 @@ import {
   ITaskRepository,
   ListTasksFilters,
 } from '../../domain/repositories/task.repository.interface';
-import { TaskEntity, PaginatedResult } from '../../domain/entities/task.entity';
+import type { Paginated } from '../../../../shared/domain/paginated.types';
+import { TaskEntity } from '../../domain/entities/task.entity';
 import { TaskCompletionEntity } from '../../domain/entities/task-completion.entity';
 import { ITaskLocalDataSource } from '../data-sources/task.local.datasource.interface';
 import { ITaskRemoteDataSource } from '../data-sources/task.remote.datasource.interface';
@@ -37,7 +38,7 @@ export class TaskRepositoryImpl implements ITaskRepository {
     limit: number,
     cursor?: string,
     filters?: ListTasksFilters,
-  ): Promise<PaginatedResult<TaskEntity>> {
+  ): Promise<Paginated<TaskEntity>> {
     return this.remoteDataSource.findByUserId(userId, limit, cursor, filters);
   }
 
@@ -66,7 +67,7 @@ export class TaskRepositoryImpl implements ITaskRepository {
     taskId: string,
     limit: number,
     cursor?: string,
-  ): Promise<PaginatedResult<TaskCompletionEntity>> {
+  ): Promise<Paginated<TaskCompletionEntity>> {
     return this.remoteDataSource.findCompletionsByTaskId(taskId, limit, cursor);
   }
 

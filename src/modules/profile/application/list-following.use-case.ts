@@ -1,19 +1,29 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { Paginated } from '../../../shared/domain/paginated.types';
 import { IProfileRepository } from '../domain/repositories/profile.repository.interface';
 import type { HabitProfileEntity } from '../domain/entities/profile.entity';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+
+export interface ListFollowingParams {
+  profileId: string;
+  limit: number;
+  cursor?: string;
+}
 
 @Injectable()
-export class ListFollowingUseCase {
+export class ListFollowingUseCase
+  implements IUseCase<Paginated<HabitProfileEntity>, ListFollowingParams>
+{
   constructor(
     @Inject(IProfileRepository)
     private readonly profileRepository: IProfileRepository,
   ) {}
 
-  async execute(
-    profileId: string,
-    limit: number,
-    cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }> {
-    return this.profileRepository.getFollowing(profileId, limit, cursor);
+  async execute(params: ListFollowingParams): Promise<Paginated<HabitProfileEntity>> {
+    return this.profileRepository.getFollowing(
+      params.profileId,
+      params.limit,
+      params.cursor,
+    );
   }
 }

@@ -13,14 +13,17 @@ import {
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
-import { CreateTaskUseCase, CreateTaskDto } from '../application/create-task.use-case';
+import { CreateTaskUseCase } from '../application/create-task.use-case';
 import { ListTasksUseCase } from '../application/list-tasks.use-case';
 import { GetTaskUseCase } from '../application/get-task.use-case';
-import { UpdateTaskUseCase, UpdateTaskDto } from '../application/update-task.use-case';
+import { UpdateTaskUseCase } from '../application/update-task.use-case';
 import { DeleteTaskUseCase } from '../application/delete-task.use-case';
-import { LogCompletionUseCase, LogCompletionDto } from '../application/log-completion.use-case';
+import { LogCompletionUseCase } from '../application/log-completion.use-case';
+import { CreateTaskDto } from '../application/dtos/create-task.dto';
+import { UpdateTaskDto } from '../application/dtos/update-task.dto';
+import { LogCompletionDto } from '../application/dtos/log-completion.dto';
 import { ListCompletionsUseCase } from '../application/list-completions.use-case';
-import { TaskType } from '../domain/entities/task.entity';
+import type { TaskType } from '../domain/entities/task.entity';
 
 @ApiTags('tasks')
 @Controller('tasks')
@@ -58,7 +61,7 @@ export class TaskController {
     return this.listTasksUseCase.execute({
       userId: user.id,
       limit,
-      cursor: cursor || undefined,
+      cursor: cursor ?? undefined,
       taskType: type,
       includeDeleted: includeDeleted || undefined,
     });
@@ -70,7 +73,7 @@ export class TaskController {
     @Param('id') taskId: string,
     @Body() dto: LogCompletionDto,
   ) {
-    return this.logCompletionUseCase.execute(taskId, user.id, dto);
+    return this.logCompletionUseCase.execute({ taskId, userId: user.id, dto });
   }
 
   @Get(':id/completions')
@@ -81,12 +84,17 @@ export class TaskController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listCompletionsUseCase.execute(taskId, user.id, limit, cursor);
+    return this.listCompletionsUseCase.execute({
+      taskId,
+      userId: user.id,
+      limit,
+      cursor,
+    });
   }
 
   @Get(':id')
   async getOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
-    return this.getTaskUseCase.execute(id, user.id);
+    return this.getTaskUseCase.execute({ taskId: id, userId: user.id });
   }
 
   @Patch(':id')
@@ -95,11 +103,11 @@ export class TaskController {
     @Param('id') id: string,
     @Body() dto: UpdateTaskDto,
   ) {
-    return this.updateTaskUseCase.execute(id, user.id, dto);
+    return this.updateTaskUseCase.execute({ taskId: id, userId: user.id, dto });
   }
 
   @Delete(':id')
   async delete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
-    await this.deleteTaskUseCase.execute(id, user.id);
+    await this.deleteTaskUseCase.execute({ taskId: id, userId: user.id });
   }
 }

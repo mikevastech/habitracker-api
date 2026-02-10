@@ -1,3 +1,4 @@
+import type { Paginated } from '../../../../shared/domain/paginated.types';
 import {
   HabitProfileEntity,
   ProfileSettingsEntity,
@@ -26,12 +27,12 @@ export interface IProfileRepository {
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }>;
+  ): Promise<Paginated<HabitProfileEntity>>;
   getFollowing(
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }>;
+  ): Promise<Paginated<HabitProfileEntity>>;
   isFollowing(followerId: string, followingId: string): Promise<boolean>;
 
   getFollowersCount(userId: string): Promise<number>;

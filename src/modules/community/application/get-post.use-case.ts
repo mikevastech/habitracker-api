@@ -1,9 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IPostRepository } from '../domain/repositories/post.repository.interface';
 import { PostEntity, PostVisibility } from '../domain/entities/community.entity';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+
+export interface GetPostParams {
+  postId: string;
+  callerUserId?: string;
+}
 
 @Injectable()
-export class GetPostUseCase {
+export class GetPostUseCase implements IUseCase<PostEntity, GetPostParams> {
   constructor(
     @Inject(IPostRepository)
     private readonly postRepository: IPostRepository,
@@ -13,10 +19,10 @@ export class GetPostUseCase {
    * Returns post by id. If callerUserId is set, allows PRIVATE posts for the author;
    * otherwise only PUBLIC posts are visible.
    */
-  async execute(postId: string, options?: { callerUserId?: string }): Promise<PostEntity> {
-    const post = await this.postRepository.findById(postId);
+  async execute(params: GetPostParams): Promise<PostEntity> {
+    const post = await this.postRepository.findById(params.postId);
     if (!post) throw new NotFoundException('Post not found');
-    const isAuthor = options?.callerUserId && post.userId === options.callerUserId;
+    const isAuthor = params.callerUserId && post.userId === params.callerUserId;
     if (post.visibility === PostVisibility.PRIVATE && !isAuthor) {
       throw new NotFoundException('Post not found');
     }

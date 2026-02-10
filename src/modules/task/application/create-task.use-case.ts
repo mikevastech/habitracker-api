@@ -1,15 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  IsEnum,
-  MinLength,
-  MaxLength,
-  IsOptional,
-  IsBoolean,
-  IsString,
-  IsNumber,
-  IsDate,
-  IsArray,
-} from 'class-validator';
 import { ITaskRepository } from '../domain/repositories/task.repository.interface';
 import {
   TaskEntity,
@@ -25,112 +14,12 @@ import {
   TaskFrequency,
   PomodoroSettings,
 } from '../domain/entities/task.entity';
-
-export class CreateTaskDto {
-  userId!: string;
-  @MinLength(1)
-  @MaxLength(200)
-  title!: string;
-  @IsEnum(TaskType)
-  taskType!: TaskType;
-  @IsBoolean()
-  @IsOptional()
-  isPublic?: boolean;
-  @IsString()
-  @IsOptional()
-  categoryId?: string;
-  @IsString()
-  @IsOptional()
-  iconName?: string;
-  @IsNumber()
-  @IsOptional()
-  colorValue?: number;
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
-  @IsDate()
-  @IsOptional()
-  startDate?: Date;
-  @IsDate()
-  @IsOptional()
-  endDate?: Date;
-  @IsArray()
-  @IsOptional()
-  notes?: string[];
-
-  // Habit
-  @IsNumber()
-  @IsOptional()
-  goalValue?: number;
-  @IsNumber()
-  @IsOptional()
-  currentValue?: number;
-  @IsString()
-  @IsOptional()
-  unitId?: string;
-  @IsString()
-  @IsOptional()
-  direction?: string;
-
-  // Routine
-  @IsArray()
-  @IsOptional()
-  steps?: string[];
-  @IsString()
-  @IsOptional()
-  startTime?: string;
-
-  // Todo
-  @IsDate()
-  @IsOptional()
-  dueTime?: Date;
-  @IsString()
-  @IsOptional()
-  priority?: string;
-  @IsBoolean()
-  @IsOptional()
-  isFlagged?: boolean;
-  @IsString()
-  @IsOptional()
-  url?: string;
-
-  // Mindset
-  @IsString()
-  @IsOptional()
-  affirmation?: string;
-  @IsNumber()
-  @IsOptional()
-  durationMinutes?: number;
-
-  @IsArray()
-  @IsOptional()
-  reminders?: any[];
-  @IsArray()
-  @IsOptional()
-  subtasks?: any[];
-  @IsOptional()
-  frequency?: {
-    type: string;
-    daysOfWeek?: number[];
-    dayOfMonth?: number | null;
-    interval?: number;
-    timesPerPeriod?: number;
-    endDate?: Date;
-  };
-  @IsOptional()
-  pomodoroSettings?: {
-    focusDuration?: number;
-    breakDuration?: number;
-    longBreakDuration?: number;
-    totalSessions?: number;
-    isEnabled?: boolean;
-    autoStartBreaks?: boolean;
-    autoStartFocus?: boolean;
-  };
-}
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+import { ValidationDomainError } from '../../../shared/domain/errors/domain.exceptions';
+import type { CreateTaskDto } from './dtos/create-task.dto';
 
 @Injectable()
-export class CreateTaskUseCase {
+export class CreateTaskUseCase implements IUseCase<TaskEntity, CreateTaskDto> {
   constructor(
     @Inject(ITaskRepository)
     private taskRepository: ITaskRepository,
@@ -191,7 +80,7 @@ export class CreateTaskUseCase {
         });
         break;
       default:
-        throw new Error(`Unsupported task type: ${String(dto.taskType)}`);
+        throw new ValidationDomainError(`Unsupported task type: ${String(dto.taskType)}`);
     }
 
     return this.taskRepository.create(task);

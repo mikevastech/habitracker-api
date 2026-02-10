@@ -56,6 +56,10 @@ function toCommentEntity(row: Prisma.CommentGetPayload<Record<string, never>>): 
 export class PostRemoteDataSourceImpl implements IPostRemoteDataSource {
   constructor(private prisma: AppPrismaService) {}
 
+  async getEntity(entityId: string): Promise<PostEntity | null> {
+    return this.findById(entityId);
+  }
+
   async findById(id: string): Promise<PostEntity | null> {
     const row = await this.prisma.post.findUnique({
       where: { id },

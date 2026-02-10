@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IPostRepository } from '../domain/repositories/post.repository.interface';
 import { PostEntity } from '../domain/entities/community.entity';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+import type { Paginated } from '../../../shared/domain/paginated.types';
 
-export interface ListPostsOptions {
+export interface ListPostsParams {
   userId?: string;
   groupId?: string;
   limit: number;
@@ -11,13 +13,15 @@ export interface ListPostsOptions {
 }
 
 @Injectable()
-export class ListPostsUseCase {
+export class ListPostsUseCase
+  implements IUseCase<Paginated<PostEntity>, ListPostsParams>
+{
   constructor(
     @Inject(IPostRepository)
     private readonly postRepository: IPostRepository,
   ) {}
 
-  async execute(options: ListPostsOptions): Promise<{ items: PostEntity[]; nextCursor?: string }> {
-    return this.postRepository.list(options);
+  async execute(params: ListPostsParams): Promise<Paginated<PostEntity>> {
+    return this.postRepository.list(params);
   }
 }

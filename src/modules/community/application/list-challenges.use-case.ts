@@ -1,21 +1,34 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IChallengeRepository } from '../domain/repositories/challenge.repository.interface';
 import type { ListChallengesOptions } from '../domain/repositories/challenge.repository.interface';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+
+export interface ListChallengesParams {
+  groupId?: string;
+  userId?: string;
+  limit: number;
+  cursor?: string;
+}
 
 @Injectable()
-export class ListChallengesUseCase {
+export class ListChallengesUseCase
+  implements IUseCase<
+    Awaited<ReturnType<IChallengeRepository['list']>>,
+    ListChallengesParams
+  >
+{
   constructor(
     @Inject(IChallengeRepository)
     private readonly challengeRepository: IChallengeRepository,
   ) {}
 
-  async execute(options: { groupId?: string; userId?: string; limit: number; cursor?: string }) {
+  async execute(params: ListChallengesParams) {
     const opts: ListChallengesOptions = {
-      limit: options.limit,
-      cursor: options.cursor,
+      limit: params.limit,
+      cursor: params.cursor,
     };
-    if (options.groupId) opts.groupId = options.groupId;
-    if (options.userId) opts.userId = options.userId;
+    if (params.groupId) opts.groupId = params.groupId;
+    if (params.userId) opts.userId = params.userId;
     return this.challengeRepository.list(opts);
   }
 }

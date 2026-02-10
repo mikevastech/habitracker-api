@@ -3,10 +3,8 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../shared/domain/auth.types';
-import {
-  CreateChallengeUseCase,
-  CreateChallengeDto,
-} from '../application/create-challenge.use-case';
+import { CreateChallengeUseCase } from '../application/create-challenge.use-case';
+import { CreateChallengeDto } from '../application/dtos/create-challenge.dto';
 import { ListChallengesUseCase } from '../application/list-challenges.use-case';
 import { GetChallengeUseCase } from '../application/get-challenge.use-case';
 import { JoinChallengeUseCase } from '../application/join-challenge.use-case';
@@ -62,19 +60,19 @@ export class ChallengeController {
 
   @Get(':id')
   async getById(@Param('id') id: string) {
-    return this.getChallengeUseCase.execute(id);
+    return this.getChallengeUseCase.execute({ challengeId: id });
   }
 
   @Post(':id/join')
   @UseGuards(SessionGuard)
   async join(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.joinChallengeUseCase.execute(id, user.id);
+    return this.joinChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Delete(':id/members/me')
   @UseGuards(SessionGuard)
   async leave(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    await this.leaveChallengeUseCase.execute(id, user.id);
+    await this.leaveChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Get(':id/members')
@@ -84,18 +82,18 @@ export class ChallengeController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listChallengeMembersUseCase.execute(id, limit, cursor);
+    return this.listChallengeMembersUseCase.execute({ challengeId: id, limit, cursor });
   }
 
   @Get(':id/progress')
   @UseGuards(SessionGuard)
   async getMyProgress(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.getChallengeProgressUseCase.execute(id, user.id);
+    return this.getChallengeProgressUseCase.execute({ challengeId: id, userId: user.id });
   }
 
   @Post(':id/complete')
   @UseGuards(SessionGuard)
   async complete(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    await this.completeChallengeUseCase.execute(id, user.id);
+    await this.completeChallengeUseCase.execute({ challengeId: id, userId: user.id });
   }
 }

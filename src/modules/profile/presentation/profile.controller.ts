@@ -13,12 +13,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
 import { CurrentUser } from '../../../shared/infrastructure/auth/decorators/current-user.decorator';
 import { GetProfileUseCase } from '../application/get-profile.use-case';
-import { UpdateProfileUseCase, UpdateProfileDto } from '../application/update-profile.use-case';
+import { UpdateProfileUseCase } from '../application/update-profile.use-case';
 import { GetProfileSettingsUseCase } from '../application/get-profile-settings.use-case';
-import {
-  UpdateProfileSettingsUseCase,
-  UpdateProfileSettingsDto,
-} from '../application/update-profile-settings.use-case';
+import { UpdateProfileSettingsUseCase } from '../application/update-profile-settings.use-case';
+import { UpdateProfileDto } from '../application/dtos/update-profile.dto';
+import { UpdateProfileSettingsDto } from '../application/dtos/update-profile-settings.dto';
 import { FollowUserUseCase } from '../application/follow-user.use-case';
 import { UnfollowUserUseCase } from '../application/unfollow-user.use-case';
 import { ListFollowersUseCase } from '../application/list-followers.use-case';
@@ -45,14 +44,14 @@ export class ProfileController {
 
   @Get('check-username')
   async checkUsername(@Query('username') username: string) {
-    const isAvailable = await this.checkUsernameUseCase.execute(username);
+    const isAvailable = await this.checkUsernameUseCase.execute({ username });
     return { available: isAvailable };
   }
 
   @Get('me')
   @UseGuards(SessionGuard)
   async getMe(@CurrentUser() user: AuthenticatedUser) {
-    const profile = await this.getProfileUseCase.execute(user.id);
+    const profile = await this.getProfileUseCase.execute({ userId: user.id });
 
     return {
       user: {
@@ -68,13 +67,13 @@ export class ProfileController {
   @Patch('me')
   @UseGuards(SessionGuard)
   async updateMe(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateProfileDto) {
-    return this.updateProfileUseCase.execute(user.id, dto);
+    return this.updateProfileUseCase.execute({ userId: user.id, dto });
   }
 
   @Get('me/settings')
   @UseGuards(SessionGuard)
   async getMySettings(@CurrentUser() user: AuthenticatedUser) {
-    return this.getProfileSettingsUseCase.execute(user.id);
+    return this.getProfileSettingsUseCase.execute({ userId: user.id });
   }
 
   @Patch('me/settings')
@@ -83,7 +82,7 @@ export class ProfileController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateProfileSettingsDto,
   ) {
-    return this.updateProfileSettingsUseCase.execute(user.id, dto);
+    return this.updateProfileSettingsUseCase.execute({ userId: user.id, dto });
   }
 
   @Get('me/followers')
@@ -94,7 +93,7 @@ export class ProfileController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listFollowersUseCase.execute(user.id, limit, cursor);
+    return this.listFollowersUseCase.execute({ profileId: user.id, limit, cursor });
   }
 
   @Get('me/following')
@@ -105,25 +104,25 @@ export class ProfileController {
     @Query('cursor') cursor?: string,
   ) {
     const limit = Math.min(Math.max(parseInt(limitStr ?? '20', 10) || 20, 1), 100);
-    return this.listFollowingUseCase.execute(user.id, limit, cursor);
+    return this.listFollowingUseCase.execute({ profileId: user.id, limit, cursor });
   }
 
   @Post('me/following/:userId')
   @UseGuards(SessionGuard)
   async follow(@CurrentUser() user: AuthenticatedUser, @Param('userId') targetUserId: string) {
-    return this.followUserUseCase.execute(user.id, targetUserId);
+    return this.followUserUseCase.execute({ followerId: user.id, followingId: targetUserId });
   }
 
   @Delete('me/following/:userId')
   @UseGuards(SessionGuard)
   async unfollow(@CurrentUser() user: AuthenticatedUser, @Param('userId') targetUserId: string) {
-    await this.unfollowUserUseCase.execute(user.id, targetUserId);
+    await this.unfollowUserUseCase.execute({ followerId: user.id, followingId: targetUserId });
   }
 
   @Get('me/suggestions')
   @UseGuards(SessionGuard)
   async getMySuggestions(@CurrentUser() user: AuthenticatedUser) {
-    const profiles = await this.getSuggestedUsersUseCase.execute(user.id);
+    const profiles = await this.getSuggestedUsersUseCase.execute({ userId: user.id });
     return { suggestions: profiles };
   }
 }

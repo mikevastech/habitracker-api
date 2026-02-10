@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
+import type { Paginated } from '../../../../shared/domain/paginated.types';
 import { IProfileRepository } from '../../domain/repositories/profile.repository.interface';
 import { IProfileLocalDataSource } from '../data-sources/profile.local.datasource.interface';
 import { IProfileRemoteDataSource } from '../data-sources/profile.remote.datasource.interface';
@@ -103,7 +104,7 @@ export class ProfileRepositoryImpl implements IProfileRepository {
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }> {
+  ): Promise<Paginated<HabitProfileEntity>> {
     return this.remoteDataSource.getFollowers(profileId, limit, cursor);
   }
 
@@ -111,7 +112,7 @@ export class ProfileRepositoryImpl implements IProfileRepository {
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }> {
+  ): Promise<Paginated<HabitProfileEntity>> {
     return this.remoteDataSource.getFollowing(profileId, limit, cursor);
   }
 

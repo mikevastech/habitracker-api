@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppPrismaService } from '../../../../shared/infrastructure/prisma/app-prisma.service';
+import type { Paginated } from '../../../../shared/domain/paginated.types';
 import {
   HabitProfileEntity,
   ProfileSettingsEntity,
@@ -8,15 +9,11 @@ import {
   PostVisibility,
 } from '../../domain/entities/profile.entity';
 import { IProfileRemoteDataSource } from './profile.remote.datasource.interface';
-import {
-  SubscriptionTier as PrismaSubscriptionTier,
-  PostVisibility as PrismaPostVisibility,
-} from '@prisma/client';
 
 function toEntity(row: {
   userId: string;
   username: string;
-  subscriptionTier: PrismaSubscriptionTier;
+  subscriptionTier: string;
   bio: string | null;
   points: number;
   isTaggingAllowed: boolean;
@@ -38,10 +35,10 @@ function toEntity(row: {
 
 @Injectable()
 export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
-  constructor(private prisma: AppPrismaService) {}
+  constructor(private readonly prisma: AppPrismaService) {}
 
   async findByUserId(userId: string): Promise<HabitProfileEntity | null> {
-    const profile = await this.prisma.habitProfile.findUnique({
+    const profile = await (this.prisma as any).habitProfile.findUnique({
       where: { userId },
       include: {
         user: { select: { image: true } },
@@ -56,7 +53,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async findByUsername(username: string): Promise<HabitProfileEntity | null> {
-    const profile = await this.prisma.habitProfile.findUnique({
+    const profile = await (this.prisma as any).habitProfile.findUnique({
       where: { username },
       include: {
         user: { select: { image: true } },
@@ -74,19 +71,19 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     // If username is being updated, we check uniqueness (handled in use case or here)
     // If avatarUrl is being updated, we update the User model
     if (data.avatarUrl !== undefined) {
-      await this.prisma.user.update({
+      await (this.prisma as any).user.update({
         where: { id: userId },
         data: { image: data.avatarUrl },
       });
     }
 
-    const updated = await this.prisma.habitProfile.update({
+    const updated = await (this.prisma as any).habitProfile.update({
       where: { userId },
       data: {
         username: data.username,
         bio: data.bio,
         subscriptionTier: data.subscriptionTier
-          ? (data.subscriptionTier as unknown as PrismaSubscriptionTier)
+          ? (data.subscriptionTier as unknown as string)
           : undefined,
         points: data.points,
         isTaggingAllowed: data.isTaggingAllowed,
@@ -103,12 +100,12 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async create(data: Partial<HabitProfileEntity>): Promise<HabitProfileEntity> {
-    const created = await this.prisma.habitProfile.create({
+    const created = await (this.prisma as any).habitProfile.create({
       data: {
         userId: data.userId!,
         username: data.username!,
         subscriptionTier: data.subscriptionTier
-          ? (data.subscriptionTier as unknown as PrismaSubscriptionTier)
+          ? (data.subscriptionTier as unknown as string)
           : 'FREE',
       },
       include: {
@@ -123,7 +120,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async getSettings(userId: string): Promise<ProfileSettingsEntity | null> {
-    const row = await this.prisma.profileSettings.findUnique({
+    const row = await (this.prisma as any).profileSettings.findUnique({
       where: { userId },
     });
     if (!row) return null;
@@ -134,14 +131,14 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     userId: string,
     data: Partial<ProfileSettingsEntity>,
   ): Promise<ProfileSettingsEntity> {
-    const updated = await this.prisma.profileSettings.update({
+    const updated = await (this.prisma as any).profileSettings.update({
       where: { userId },
       data: {
         isSearchable: data.isSearchable,
         analyticsEnabled: data.analyticsEnabled,
-        profileVisibility: data.profileVisibility as PrismaPostVisibility | undefined,
-        challengeVisibility: data.challengeVisibility as PrismaPostVisibility | undefined,
-        challengePostVisibility: data.challengePostVisibility as PrismaPostVisibility | undefined,
+        profileVisibility: data.profileVisibility as string | undefined,
+        challengeVisibility: data.challengeVisibility as string | undefined,
+        challengePostVisibility: data.challengePostVisibility as string | undefined,
         taskDailyReminderTime: data.taskDailyReminderTime,
         taskWeekStartDay: data.taskWeekStartDay,
         taskArchiveVisible: data.taskArchiveVisible,
@@ -169,7 +166,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
       pomodoroBreakDuration: 5,
       pomodoroLongBreakDuration: 15,
     };
-    const created = await this.prisma.profileSettings.create({
+    const created = await (this.prisma as any).profileSettings.create({
       data: {
         userId,
         ...defaults,
@@ -177,12 +174,11 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
         isSearchable: data?.isSearchable ?? defaults.isSearchable,
         analyticsEnabled: data?.analyticsEnabled ?? defaults.analyticsEnabled,
         profileVisibility:
-          (data?.profileVisibility as PrismaPostVisibility) ?? defaults.profileVisibility,
+          (data?.profileVisibility as string) ?? defaults.profileVisibility,
         challengeVisibility:
-          (data?.challengeVisibility as PrismaPostVisibility) ?? defaults.challengeVisibility,
+          (data?.challengeVisibility as string) ?? defaults.challengeVisibility,
         challengePostVisibility:
-          (data?.challengePostVisibility as PrismaPostVisibility) ??
-          defaults.challengePostVisibility,
+          (data?.challengePostVisibility as string) ?? defaults.challengePostVisibility,
         taskWeekStartDay: data?.taskWeekStartDay ?? defaults.taskWeekStartDay,
         taskArchiveVisible: data?.taskArchiveVisible ?? defaults.taskArchiveVisible,
         pomodoroFocusDuration: data?.pomodoroFocusDuration ?? defaults.pomodoroFocusDuration,
@@ -225,14 +221,14 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async follow(followerId: string, followingId: string): Promise<FollowEntity> {
-    await this.prisma.follow.create({
+    await (this.prisma as any).follow.create({
       data: { followerId, followingId },
     });
     return new FollowEntity({ followerId, followingId });
   }
 
   async unfollow(followerId: string, followingId: string): Promise<void> {
-    await this.prisma.follow.delete({
+    await (this.prisma as any).follow.delete({
       where: {
         followerId_followingId: { followerId, followingId },
       },
@@ -243,9 +239,9 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }> {
+  ): Promise<Paginated<HabitProfileEntity>> {
     const take = limit + 1;
-    const rows = await this.prisma.follow.findMany({
+    const rows = await (this.prisma as any).follow.findMany({
       where: { followingId: profileId },
       take,
       skip: cursor ? 1 : 0,
@@ -266,7 +262,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     const items = hasNext ? rows.slice(0, limit) : rows;
     const nextCursor = hasNext ? items[items.length - 1].followerId : undefined;
     return {
-      data: items.map((r) => toEntity(r.follower)),
+      items: items.map((r) => toEntity(r.follower)),
       nextCursor,
     };
   }
@@ -275,9 +271,9 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     profileId: string,
     limit: number,
     cursor?: string,
-  ): Promise<{ data: HabitProfileEntity[]; nextCursor?: string }> {
+  ): Promise<Paginated<HabitProfileEntity>> {
     const take = limit + 1;
-    const rows = await this.prisma.follow.findMany({
+    const rows = await (this.prisma as any).follow.findMany({
       where: { followerId: profileId },
       take,
       skip: cursor ? 1 : 0,
@@ -298,13 +294,13 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     const items = hasNext ? rows.slice(0, limit) : rows;
     const nextCursor = hasNext ? items[items.length - 1].followingId : undefined;
     return {
-      data: items.map((r) => toEntity(r.following)),
+      items: items.map((r) => toEntity(r.following)),
       nextCursor,
     };
   }
 
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    const row = await this.prisma.follow.findUnique({
+    const row = await (this.prisma as any).follow.findUnique({
       where: {
         followerId_followingId: { followerId, followingId },
       },
@@ -313,13 +309,13 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async getFollowersCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
+    return (this.prisma as any).follow.count({
       where: { followingId: userId },
     });
   }
 
   async getFollowingCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
+    return (this.prisma as any).follow.count({
       where: { followerId: userId },
     });
   }
@@ -327,7 +323,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   async findManyByUserIds(userIds: string[]): Promise<HabitProfileEntity[]> {
     if (userIds.length === 0) return [];
     const unique = [...new Set(userIds)];
-    const profiles = await this.prisma.habitProfile.findMany({
+    const profiles = await (this.prisma as any).habitProfile.findMany({
       where: { userId: { in: unique } },
       include: {
         user: { select: { image: true } },
@@ -338,7 +334,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async getTopUserIdsByFollowerCount(limit: number): Promise<string[]> {
-    const rows = await this.prisma.habitProfile.findMany({
+    const rows = await (this.prisma as any).habitProfile.findMany({
       orderBy: [{ followers: { _count: 'desc' } }],
       take: limit,
       select: { userId: true },
@@ -347,7 +343,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   }
 
   async getBatchUserIds(limit: number): Promise<string[]> {
-    const rows = await this.prisma.habitProfile.findMany({
+    const rows = await (this.prisma as any).habitProfile.findMany({
       take: limit,
       select: { userId: true },
     });
@@ -374,7 +370,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   async getSettingsBatch(userIds: string[]): Promise<Map<string, ProfileSettingsEntity>> {
     if (userIds.length === 0) return new Map();
     const unique = [...new Set(userIds)];
-    const rows = await this.prisma.profileSettings.findMany({
+    const rows = await (this.prisma as any).profileSettings.findMany({
       where: { userId: { in: unique } },
     });
     const map = new Map<string, ProfileSettingsEntity>();
@@ -394,7 +390,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
     const since = new Date();
     since.setDate(since.getDate() - lastDays);
     since.setHours(0, 0, 0, 0);
-    const rows = await this.prisma.dailyStats.findMany({
+    const rows = await (this.prisma as any).dailyStats.findMany({
       where: {
         userId: { in: [...new Set(userIds)] },
         recordDate: { gte: since },
@@ -414,7 +410,7 @@ export class ProfileRemoteDataSourceImpl implements IProfileRemoteDataSource {
   async getChallengeParticipationCount(userIds: string[]): Promise<Map<string, number>> {
     if (userIds.length === 0) return new Map();
     const unique = [...new Set(userIds)];
-    const rows = await this.prisma.challengeMember.groupBy({
+    const rows = await (this.prisma as any).challengeMember.groupBy({
       by: ['userId'],
       where: { userId: { in: unique } },
       _count: { challengeId: true },

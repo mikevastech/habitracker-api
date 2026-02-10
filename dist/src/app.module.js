@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
+const throttler_storage_redis_1 = require("@nest-lab/throttler-storage-redis");
 const core_1 = require("@nestjs/core");
 const analytics_module_1 = require("./shared/infrastructure/analytics/analytics.module");
 const prisma_module_1 = require("./shared/infrastructure/prisma/prisma.module");
@@ -29,23 +30,18 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
-            throttler_1.ThrottlerModule.forRoot([
-                {
-                    name: 'short',
-                    ttl: 1000,
-                    limit: 10,
-                },
-                {
-                    name: 'medium',
-                    ttl: 10_000,
-                    limit: 50,
-                },
-                {
-                    name: 'long',
-                    ttl: 60_000,
-                    limit: 200,
-                },
-            ]),
+            throttler_1.ThrottlerModule.forRootAsync({
+                imports: [redis_module_1.RedisModule],
+                inject: ['REDIS_CLIENT'],
+                useFactory: (redis) => ({
+                    throttlers: [
+                        { name: 'short', ttl: 1000, limit: 10 },
+                        { name: 'medium', ttl: 10_000, limit: 50 },
+                        { name: 'long', ttl: 60_000, limit: 200 },
+                    ],
+                    storage: new throttler_storage_redis_1.ThrottlerStorageRedisService(redis),
+                }),
+            }),
             prisma_module_1.PrismaModule,
             redis_module_1.RedisModule,
             analytics_module_1.AnalyticsModule,

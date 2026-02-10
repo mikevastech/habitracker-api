@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { AppPrismaService } from '../../../../shared/infrastructure/prisma/app-prisma.service';
 import { ITaskRemoteDataSource } from './task.remote.datasource.interface';
 import type { ListTasksFilters } from '../../domain/repositories/task.repository.interface';
+import type { Paginated } from '../../../../shared/domain/paginated.types';
 import {
   TaskEntity,
   TaskType,
-  PaginatedResult,
   HabitEntity,
   RoutineEntity,
   TodoEntity,
@@ -41,6 +41,10 @@ type PrismaTaskWithRelations = Prisma.TaskGetPayload<{
 @Injectable()
 export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
   constructor(private readonly prisma: AppPrismaService) {}
+
+  async getEntity(entityId: string): Promise<TaskEntity | null> {
+    return this.findById(entityId);
+  }
 
   async create(task: Partial<TaskEntity>): Promise<TaskEntity> {
     const data: Prisma.TaskCreateInput = {
@@ -175,7 +179,7 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
     limit: number,
     cursor?: string,
     filters?: ListTasksFilters,
-  ): Promise<PaginatedResult<TaskEntity>> {
+  ): Promise<Paginated<TaskEntity>> {
     const take = limit + 1;
     const where: {
       userId: string;
@@ -212,7 +216,7 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
     const nextCursor = hasNextPage ? items[items.length - 1].id : undefined;
 
     return {
-      data: items.map((t) => this.mapToEntity(t as PrismaTaskWithRelations)),
+      items: items.map((t) => this.mapToEntity(t as PrismaTaskWithRelations)),
       nextCursor,
     };
   }
@@ -390,7 +394,7 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
     taskId: string,
     limit: number,
     cursor?: string,
-  ): Promise<PaginatedResult<TaskCompletionEntity>> {
+  ): Promise<Paginated<TaskCompletionEntity>> {
     const take = limit + 1;
     const rows = await this.prisma.taskCompletion.findMany({
       where: { taskId },
@@ -405,7 +409,7 @@ export class TaskRemoteDataSourceImpl implements ITaskRemoteDataSource {
     const nextCursor = hasNextPage ? items[items.length - 1].id : undefined;
 
     return {
-      data: items.map(
+      items: items.map(
         (r) =>
           new TaskCompletionEntity({
             id: r.id,

@@ -1,6 +1,8 @@
 import { PostEntity } from '../../domain/entities/community.entity';
+import type { IGetById } from '../../../../shared/domain/ports/data-source.ports';
 
-export interface IPostRemoteDataSource {
+export interface IPostRemoteDataSource extends IGetById<PostEntity> {
+  getEntity(entityId: string): Promise<PostEntity | null>;
   findById(id: string): Promise<PostEntity | null>;
   findByIds(ids: string[]): Promise<PostEntity[]>;
   create(post: Partial<PostEntity>): Promise<PostEntity>;

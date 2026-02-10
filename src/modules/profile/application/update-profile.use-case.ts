@@ -1,44 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IsOptional, IsString, IsBoolean, IsUrl, MaxLength, MinLength } from 'class-validator';
 import { IProfileRepository } from '../domain/repositories/profile.repository.interface';
 import { HabitProfileEntity } from '../domain/entities/profile.entity';
+import type { IUseCase } from '../../../shared/domain/ports/use-case.port';
+import type { UpdateProfileDto } from './dtos/update-profile.dto';
 
-export class UpdateProfileDto {
-  @IsOptional()
-  @IsString()
-  @MinLength(1)
-  @MaxLength(50)
-  username?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  bio?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isTaggingAllowed?: boolean;
-
-  @IsOptional()
-  @IsUrl()
-  avatarUrl?: string | null;
+export interface UpdateProfileParams {
+  userId: string;
+  dto: UpdateProfileDto;
 }
 
 @Injectable()
-export class UpdateProfileUseCase {
+export class UpdateProfileUseCase implements IUseCase<HabitProfileEntity, UpdateProfileParams> {
   constructor(
     @Inject(IProfileRepository)
     private profileRepository: IProfileRepository,
   ) {}
 
-  async execute(userId: string, dto: UpdateProfileDto): Promise<HabitProfileEntity> {
+  async execute(params: UpdateProfileParams): Promise<HabitProfileEntity> {
     const data: Partial<HabitProfileEntity> = {
-      username: dto.username,
-      bio: dto.bio,
-      isTaggingAllowed: dto.isTaggingAllowed,
-      avatarUrl: dto.avatarUrl,
+      username: params.dto.username,
+      bio: params.dto.bio,
+      isTaggingAllowed: params.dto.isTaggingAllowed,
+      avatarUrl: params.dto.avatarUrl,
     };
-
-    return this.profileRepository.update(userId, data);
+    return this.profileRepository.update(params.userId, data);
   }
 }

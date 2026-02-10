@@ -1,11 +1,23 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
 import { SwaggerModule } from '@nestjs/swagger';
 import { getSwaggerConfig } from './swagger.config';
 import { LoggingInterceptor } from './shared/infrastructure/logging/logging.interceptor';
 import { requestLoggerMiddleware } from './shared/infrastructure/logging/request-logger.middleware';
+import { DomainExceptionFilter } from './shared/infrastructure/filters/domain-exception.filter';
+import { SentryExceptionFilter } from './shared/infrastructure/filters/sentry-exception.filter';
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV ?? 'development',
+    tracesSampleRate: 1.0,
+  });
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,11 +27,12 @@ async function bootstrap() {
     }),
   });
 
-  if (process.env.NODE_ENV !== 'production') {
-    app.use(requestLoggerMiddleware); // first: log every request (incl. POST) before guards
-    app.useGlobalInterceptors(new LoggingInterceptor());
-  }
+  app.use(helmet());
 
+  app.use(requestLoggerMiddleware);
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
+  app.useGlobalFilters(new SentryExceptionFilter(), new DomainExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -31,7 +44,6 @@ async function bootstrap() {
 
   const config = getSwaggerConfig();
   const document = SwaggerModule.createDocument(app, config);
-  // Swagger UI: /api/docs | OpenAPI JSON: /api/docs-json
   SwaggerModule.setup('api/docs', app, document);
 
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
@@ -40,6 +52,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  app.enableShutdownHooks();
 
   await app.listen(process.env.PORT ?? 3000);
 }
