@@ -3,11 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
   Query,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { SessionGuard } from '../../../shared/infrastructure/auth/guards/session.guard';
@@ -33,6 +35,7 @@ import {
   GetMeResponseDto,
   SuggestionsResponseDto,
 } from '../application/dtos/profile-response.dto';
+import { IProfileRepository } from '../domain/repositories/profile.repository.interface';
 
 @ApiTags('profile')
 @Controller('profile')
@@ -48,6 +51,8 @@ export class ProfileController {
     private readonly listFollowingUseCase: ListFollowingUseCase,
     private readonly checkUsernameUseCase: CheckUsernameUseCase,
     private readonly getSuggestedUsersUseCase: GetSuggestedUsersUseCase,
+    @Inject(IProfileRepository)
+    private readonly profileRepository: IProfileRepository,
   ) {}
 
   @Get('check-username')
@@ -68,6 +73,7 @@ export class ProfileController {
         id: user.id,
         email: user.email,
         name: user.name,
+        lastName: user.lastName,
         image: user.image,
       },
       profile,
@@ -142,5 +148,23 @@ export class ProfileController {
   async getMySuggestions(@CurrentUser() user: AuthenticatedUser) {
     const profiles = await this.getSuggestedUsersUseCase.execute({ userId: user.id });
     return { suggestions: profiles };
+  }
+
+  @Get(':id')
+  @ApiOkResponse({ type: HabitProfileResponseDto })
+  async getProfile(@Param('id') id: string) {
+    // Try to find by userId first (UUID format)
+    let profile = await this.profileRepository.findByUserId(id);
+    
+    // If not found by userId, try username
+    if (!profile) {
+      profile = await this.profileRepository.findByUsername(id);
+    }
+    
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    
+    return profile;
   }
 }

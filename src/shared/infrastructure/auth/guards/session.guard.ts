@@ -13,12 +13,14 @@ function toAuthenticatedUser(user: {
   id: string;
   email: string;
   name?: string | null;
+  lastName?: string | null;
   image?: string | null;
 }): AuthenticatedUser {
   return {
     id: user.id,
     email: user.email,
     name: user.name ?? null,
+    lastName: user.lastName ?? null,
     image: user.image ?? null,
   };
 }

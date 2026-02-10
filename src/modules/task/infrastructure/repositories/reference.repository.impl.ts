@@ -42,8 +42,14 @@ export class ReferenceRepositoryImpl implements IReferenceRepository {
 
   async findPredefinedTaskTemplates() {
     const cached = await this.localDataSource.getCachedTaskTemplates();
-    if (cached) return cached;
+    // If cache exists and is not empty, return it
+    // If cache is empty array, ignore it and fetch from database (cache might be stale)
+    if (cached && cached.length > 0) {
+      return cached;
+    }
+    // Fetch from database
     const data = await this.remoteDataSource.findPredefinedTaskTemplates();
+    // Cache the result (even if empty, to avoid repeated DB queries)
     await this.localDataSource.setCachedTaskTemplates(data);
     return data;
   }

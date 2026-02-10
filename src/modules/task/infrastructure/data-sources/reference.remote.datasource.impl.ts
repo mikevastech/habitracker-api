@@ -147,7 +147,10 @@ export class ReferenceRemoteDataSourceImpl implements IReferenceRemoteDataSource
 
   async findPredefinedTaskTemplates(): Promise<TaskTemplateItem[]> {
     const rows = await this.prisma.task.findMany({
-      where: { isPredefined: true },
+      where: { 
+        isPredefined: true,
+        isDeleted: false,
+      },
       include: {
         habitDetails: true,
         routineDetails: true,

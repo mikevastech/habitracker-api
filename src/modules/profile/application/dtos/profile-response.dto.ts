@@ -86,8 +86,9 @@ export class GetMeResponseDto {
   user!: {
     id: string;
     email: string;
-    name: string;
-    image: string;
+    name: string | null;
+    lastName: string | null;
+    image: string | null;
   };
 
   @ApiProperty({ type: HabitProfileResponseDto })
